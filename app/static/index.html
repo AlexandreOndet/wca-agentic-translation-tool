@@ -15,6 +15,7 @@
   <div class="project-controls">
     <label>Component<select id="component"><option value="locales">Locales · website</option><option value="payload">Payload CMS · website content</option><option value="regulations">Regulations · rules</option></select></label>
     <label>Target language<select id="language"><option value="es_419">Latin American Spanish · es_419</option></select></label>
+    <label class="model-control">AI<select id="ai-provider"><option value="chatgpt">ChatGPT</option><option value="claude-code">Claude Code · local</option></select></label>
     <label class="model-control">Model<select id="model"><option value="">Connect ChatGPT</option></select></label>
     <button id="generate" class="primary" hidden>Continue translation</button>
   </div>
@@ -74,6 +75,7 @@
 <dialog id="export-dialog"><h2>Review and download</h2><p id="export-counts"></p><p id="export-help" class="muted"></p><div id="validation"></div><label id="pending-ack"><input type="checkbox" id="confirm-pending"> I confirm that pending entries will be omitted.</label><label id="warning-ack"><input type="checkbox" id="confirm-warnings"> I reviewed the remaining warnings and confirm these changes.</label><div class="actions"><button id="close-export">Back</button><button id="download" class="primary">Download file</button></div></dialog>
 <dialog id="connections-dialog"><div class="dialog-heading"><h2>Connections</h2><button id="connections-close" aria-label="Close connections">×</button></div>
 <section class="connection-card"><h3>ChatGPT</h3><p id="chatgpt-status">Disconnected</p><button id="chatgpt-connect" class="primary">Connect ChatGPT</button><details id="chatgpt-options" hidden><summary>More options</summary><label><input id="chatgpt-new-account" type="checkbox"> Use another ChatGPT account on the next sign-in</label></details></section>
+<section class="connection-card"><h3>Claude Code</h3><p id="claude-status">Not checked</p><p class="muted">Uses your own Claude Code sign-in on this computer. To connect, run claude auth login in a terminal, then reopen Connections.</p></section>
 <section class="connection-card"><h3>Weblate</h3><label>Weblate token<input id="weblate-key" type="password" autocomplete="new-password" placeholder="Paste your token"></label><p id="weblate-status" role="status"></p><button id="connections-save">Save</button></section>
 <p id="connection-message" role="status"></p></dialog>
 <dialog id="draft-recovery-dialog" aria-labelledby="draft-recovery-title">

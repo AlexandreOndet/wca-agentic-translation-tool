@@ -14,22 +14,30 @@ from workspace import Workspace
 from weblate import Client
 from connections import Connections
 from openai_auth import ChatGPTAuth
-from translation import OpenAITranslator, generate_proposals
+from translation import OpenAITranslator, Translators, generate_proposals
+from claude_code import ClaudeCodeTranslator
 from network import LOCAL_REQUEST_TIMEOUT
 
 ROOT = Path(__file__).resolve().parent
 
 
-def make_handler(controller, connections=None, auth=None, translator=None):
+def make_handler(controller, connections=None, auth=None, translator=None, claude=None):
     demo = isinstance(controller, Workspace) and getattr(controller.client, 'is_demo', False) is True
     connections = connections or Connections(demo=demo)
     auth = auth or ChatGPTAuth(controller.data_dir / 'auth' / 'chatgpt.json')
-    translator = translator or OpenAITranslator(connections, auth)
+    claude = claude or ClaudeCodeTranslator()
+    if not translator:
+        openai = OpenAITranslator(connections, auth)
+        translator = Translators({'chatgpt': openai, 'openai': openai, 'claude-code': claude})
     if isinstance(controller, Workspace) and isinstance(controller.client, Client):
         controller.client.token_getter = lambda: connections.get('WEBLATE_TOKEN')
     operation_lock = threading.Lock()
     catalog_lock = threading.Lock()
     cached_state = None
+
+    def connection_status():
+        claude_status = {'available': False, 'logged_in': False, 'subscription': ''} if demo else claude.status()
+        return {'config': connections.status(), 'chatgpt': auth.status(), 'claude_code': claude_status, 'demo': demo}
 
     def snapshot():
         nonlocal cached_state
@@ -129,7 +137,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     self.json_response({'error': str(exc)}, 400)
                 return
             if path == '/api/connections':
-                self.json_response({'config': connections.status(), 'chatgpt': auth.status(), 'demo': demo})
+                self.json_response(connection_status())
                 return
             if path in ('/api/languages', '/api/models', '/api/project-status'):
                 # An options lookup must not block local review.
@@ -256,7 +264,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     return
                 if path == '/api/connections':
                     connections.configure(data.get('values', {}))
-                    self.json_response({'config': connections.status(), 'chatgpt': auth.status(), 'demo': demo})
+                    self.json_response(connection_status())
                     return
                 if path in ('/api/chatgpt/start', '/api/chatgpt/select', '/api/chatgpt/disconnect'):
                     if demo:

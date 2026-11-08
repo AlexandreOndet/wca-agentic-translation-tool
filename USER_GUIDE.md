@@ -43,6 +43,7 @@ Personal catalogs take precedence over repository defaults, so review updates wi
 2. Open **Connections**.
 3. Sign in to [WCA Weblate](https://translate.worldcubeassociation.org/), click your user icon at the top right and open **Settings → API access** (**Developer settings** in newer versions). Copy your API token. Return to the application, paste it into **Weblate token** and click **Save**.
 4. Click **Connect ChatGPT** and finish signing in. Return to the application and close **Connections** with **×**.
+   Using Claude instead? Install [Claude Code](https://code.claude.com/docs), run `claude auth login` in a terminal with your Claude subscription, then choose **Claude Code · local** under **AI** in the application. Skip the ChatGPT button.
 5. Choose the **Component** you want to work on: **Locales**, **Payload CMS** or **Regulations**.
 6. Under **Target language**, choose the language you want to translate into. Wait for loading to finish. Before generating, [review your language glossary](#prepare-your-language-glossary).
 7. Click **Sync & Translate**. If **Continue translation** appears, click it until the proposals are ready. If there is no pending work, you are done with this component.
