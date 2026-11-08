@@ -93,6 +93,35 @@ function showProgress() {
   if (!dirty && !saving) $('save').textContent = t("✓ Progress saved locally");
   $('recent-status').textContent = state.recent ? t("Recent download loaded. It will be used as the export base.") : t("The base is this session’s download.");
   $('remove-recent').hidden = !state.recent;
+  showNextStep();
+}
+let lastPending=null;
+function downloadedKey() {return 'wca-downloaded:'+(state.workspace?.active_id || 'review');}
+function downloadedRevision() {try{return localStorage.getItem(downloadedKey());}catch{return null;}}
+// Leads from the last decision to download, then to the manual Weblate upload.
+function showNextStep() {
+  const w=state.workspace, c=state.counts, box=$('next-step');
+  const finished=state.entries.length>0 && !c.pending;
+  const justFinished=finished && lastPending>0;
+  lastPending=c.pending;
+  box.hidden=!finished;
+  if(!finished)return;
+  const changes=c.accepted+c.edited, test=w?.demo || w?.simulation;
+  const downloaded=downloadedRevision()===String(state.revision);
+  const link=$('next-weblate'), button=$('next-download');
+  link.hidden=!changes || !downloaded || test || !w?.component;
+  button.hidden=!changes;
+  button.classList.toggle('primary',!downloaded);
+  button.textContent=downloaded?t("Download again"):t("Download translation ↗");
+  if(!link.hidden){
+    link.href=`https://translate.worldcubeassociation.org/projects/wca/${encodeURIComponent(w.component)}/${encodeURIComponent(w.language)}/`;
+    link.textContent=t("Open {0} in Weblate ↗",languageName(w.language,w.language_name));
+  }
+  $('next-step-text').textContent=!changes?t("All entries reviewed. Nothing to upload: no entry was accepted or edited.")
+    :!downloaded?t("All {0} entries reviewed. Next step: download the file, then upload it in Weblate.",state.entries.length)
+    :test?t("Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate.")
+    :t("File downloaded, but Weblate does not have it yet. Last step: open Weblate, then Files → Upload translation, pick the file and choose Add as translation (never Replace). Afterwards, Sync & Translate here should show nothing pending.");
+  if(justFinished){box.scrollIntoView({block:'nearest'});button.focus();}
 }
 function renderList() {
   const fragment = document.createDocumentFragment();
@@ -623,6 +652,7 @@ $('export').onclick=()=>act(async()=>{
   await refreshExport();$('export-dialog').showModal();
 });
 $('close-export').onclick=()=>act(closeExport);
+$('next-download').onclick=()=>$('export').click();
 $('export-dialog').addEventListener('cancel',event=>{event.preventDefault();act(closeExport);});
 $('download').onclick=()=>act(async()=>{
   if(exportDrafts.size)throw new Error(t("Save corrections before downloading."));
@@ -631,6 +661,8 @@ $('download').onclick=()=>act(async()=>{
     const result=await api('/api/export',{revision:state.revision,mode:'changes',confirm_pending:$('confirm-pending').checked,confirm_warnings:$('confirm-warnings').checked});
     if(!result.ok){exportReport={...exportReport,...result};validation(exportReport);return;}
     download(result);$('export-dialog').close();exportExpanded.clear();
+    try{localStorage.setItem(downloadedKey(),String(state.revision));}catch{}
+    showNextStep();if(!$('next-weblate').hidden)$('next-weblate').focus();
   } finally {exportBusy=false;updateDownload();}
 });
 

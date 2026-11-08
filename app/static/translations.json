@@ -538,5 +538,11 @@
   "The glossary exceeds the 2 MB limit.": "El glosario supera el límite de 2 MB.",
   "The glossary must be valid UTF-8 JSON.": "El glosario debe ser JSON válido en UTF-8.",
   "The glossary changed. Reopen it before saving your changes.": "El glosario cambió. Volvé a abrirlo antes de guardar tus cambios.",
-  "Session glossary: {0} terms.": "Glosario de la sesión: {0} términos."
+  "Session glossary: {0} terms.": "Glosario de la sesión: {0} términos.",
+  "Download again": "Descargar de nuevo",
+  "Open {0} in Weblate ↗": "Abrir {0} en Weblate ↗",
+  "All entries reviewed. Nothing to upload: no entry was accepted or edited.": "Revisaste todas las entradas. No hay nada para subir: ninguna entrada se aceptó ni editó.",
+  "All {0} entries reviewed. Next step: download the file, then upload it in Weblate.": "Revisaste las {0} entradas. Próximo paso: descargá el archivo y después subilo a Weblate.",
+  "Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate.": "Archivo de prueba descargado. Nunca subas archivos DEMO_ o SIMULATION_ a Weblate.",
+  "File downloaded, but Weblate does not have it yet. Last step: open Weblate, then Files → Upload translation, pick the file and choose Add as translation (never Replace). Afterwards, Sync & Translate here should show nothing pending.": "Archivo descargado, pero Weblate todavía no lo tiene. Último paso: abrí Weblate, después Files → Upload translation, elegí el archivo y marcá Add as translation (nunca Replace). Después, Sincronizar y traducir acá no debería mostrar nada pendiente."
 }
