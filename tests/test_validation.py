@@ -1,4 +1,5 @@
 import json
+import polib
 from pathlib import Path
 import sys
 import tempfile
@@ -31,6 +32,23 @@ class ValidationTests(unittest.TestCase):
 
     def dismiss(self,issue,dismissed=True):
         self.review.dismiss_check(issue['id'],self.review.document['revision'],dismissed)
+
+    def technical_codes(self, old, value):
+        def po(text):
+            catalog=polib.POFile();catalog.metadata={'Language':'fr_CA','Content-Type':'text/plain; charset=UTF-8'}
+            catalog.append(polib.POEntry(msgctxt='html',msgid='See <a href="%{url}">results</a>.</p> <p>More.',msgstr=text))
+            return str(catalog)
+        self.original.write_text(po(old));self.proposed.write_text(po(value))
+        review=Review(self.original,self.proposed,Path(tempfile.mkdtemp(dir=self.root)),source_checks=True)
+        review.decide(review.changed[0],{'status':'accepted'},review.document['revision'])
+        return [w['code'] for w in review.validate_export(review.document['revision'])['warnings']]
+
+    def test_technical_check_compares_with_source_or_previous_translation(self):
+        tags='Voir les <a href="%{url}">résultats</a>.</p> <p>Plus.'
+        self.assertNotIn('technical',self.technical_codes('',tags))  # new entry matching English
+        self.assertNotIn('technical',self.technical_codes('Voir.</p>',tags))  # now matches English
+        self.assertNotIn('technical',self.technical_codes('Voir.</p> ici','Voir.</p> là'))  # keeps previous structure
+        self.assertIn('technical',self.technical_codes('','Voir les résultats. Plus.'))
 
     def test_validation_does_not_write_an_export(self):
         self.decide(self.singular,'accepted')
