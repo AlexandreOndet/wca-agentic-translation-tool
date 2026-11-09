@@ -30,7 +30,7 @@ async function readSync(response) {
   const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='',result,streamError,recovery;
   function event(line) {if(!line.trim())return;const value=JSON.parse(line);if(value.error){streamError=value.error;recovery=value.recovery;}else if(value.result)result=value.result;else if(value.stage!==undefined)syncStage(value);}
   for(;;) {const {value,done}=await reader.read();buffer+=decoder.decode(value||new Uint8Array(),{stream:!done});let end;while((end=buffer.indexOf('\n'))>=0){event(buffer.slice(0,end));buffer=buffer.slice(end+1);}if(done)break;}
-  if(buffer.trim())event(buffer);if(streamError){if(recovery){state=recovery;selected=state.entries[0]?.key;editing=!!current()?.decision.draft;render();}throw new Error(streamError);}if(!result)throw new Error(t("The connection closed before synchronization completed. Reload to check whether the session was saved."));return result;
+  if(buffer.trim())event(buffer);if(streamError){if(recovery){state=recovery;selected=resumeKey();editing=!!current()?.decision.draft;render();}throw new Error(streamError);}if(!result)throw new Error(t("The connection closed before synchronization completed. Reload to check whether the session was saved."));return result;
 }
 
 function error(message) { lastError=message; $('error').textContent = t(message); $('error').hidden = false; }
@@ -43,6 +43,11 @@ async function api(path, data, requestState = state) {
   return result;
 }
 function current() { return state.entries.find(e => e.key === selected); }
+function positionKey() { return 'wca-position:'+(state.workspace?.active_id || 'review'); }
+function resumeKey() {
+  let saved=null; try{saved=localStorage.getItem(positionKey());}catch{}
+  return (state.entries.find(e=>e.key===saved) || state.entries.find(e=>e.decision.status==='pending') || state.entries[0])?.key;
+}
 function visible() {
   const filter = $('filter').value, search = $('search').value.toLocaleLowerCase();
   return state.entries.filter(e => (filter === 'all' || (filter === 'conflict' ? e.conflict : e.decision.status === filter)) && (!search || [e.context,...e.source,...e.original,...e.proposed,...(e.decision.values || []),...(e.decision.draft || [])].join('\n').toLocaleLowerCase().includes(search)));
@@ -174,6 +179,7 @@ function editorValues() { return [...document.querySelectorAll('.edit-form')].ma
 function renderEntry() {
   const e=current(); $('review').hidden = !e;
   if (!e) return;
+  try{localStorage.setItem(positionKey(),e.key);}catch{}
   $('position').textContent = t("CHANGE {0} OF {1}", state.entries.indexOf(e)+1, state.entries.length);
   $('context').textContent = e.context || t("No context"); $('status').textContent = t(labels[e.decision.status]) + (e.conflict ? t(" · Conflict") : '');
   $('source').replaceChildren();
@@ -420,7 +426,7 @@ async function workspaceAction(path, data={}) {
   const buttons=['language','reference','model','manual-mode','generate','reference-proposals','component','sync','open-session','copy-prompt','load-proposals','export'];
   buttons.forEach(id=>$(id).disabled=true);
   $('workspace-detail').textContent=path==='/api/sync' ? t("Downloading the current bases from Weblate…") : t("Loading the session…");
-  try {state=await api(path,data);syncFailed=false;if(state.workspace.component)$('component').value=state.workspace.component;setLanguage(state.workspace.language,state.workspace.language_name);selected=state.entries[0]?.key;editing=!!current()?.decision.draft;render();}
+  try {state=await api(path,data);syncFailed=false;if(state.workspace.component)$('component').value=state.workspace.component;setLanguage(state.workspace.language,state.workspace.language_name);selected=resumeKey();editing=!!current()?.decision.draft;render();}
   catch(exc) {if(isSync){syncFailed=true;$('sync-indicator').classList.add('failed');syncStage({stage:lastSyncEvent?.stage || 0,total:lastSyncEvent?.total || 7,message:exc.message});}throw exc;}
   finally {if(isSync){clearInterval(syncTimer);syncing=false;}buttons.forEach(id=>$(id).disabled=false);showWorkspace();if(path==='/api/sync'){ensureLanguages(true);ensureProjectStatus(true);}}
 }
@@ -471,7 +477,7 @@ document.addEventListener('keydown',event=>{
   if(actions[key]){event.preventDefault();act(actions[key]);}
 });
 window.addEventListener('beforeunload',event=>{if(dirty||saving||exportDrafts.size){event.preventDefault();event.returnValue='';}});
-act(async()=>{await uiReady;state=await api('/api/state');selected=state.entries[0]?.key;editing=!!current()?.decision.draft;render();await refreshConnections();if(state.workspace){await ensureLanguages();ensureProjectStatus();}});
+act(async()=>{await uiReady;state=await api('/api/state');selected=resumeKey();editing=!!current()?.decision.draft;render();await refreshConnections();if(state.workspace){await ensureLanguages();ensureProjectStatus();}});
 
 function setLanguage(code,name) {
   if(!code)return;
