@@ -2,6 +2,8 @@
 
 The reviewed [es-419 glossary](es_419.json) is the shared project default for Locales, Regulations and Payload, with 162 entries. New sessions load it automatically for es-419 or es_419 when no personal replacement exists.
 
+The [fr](fr.json) and [fr-CA](fr_ca.json) glossaries come from the published Locales and the French Regulations translation. fr-CA shares the French terms, except where the fr-CA Locales consistently differ: courriel, horaire, seuil, casse-tête, feuille de temps, Championnat Mondial and meal names.
+
 It preserves the confirmed terminology, including Trainee Delegate → Delegado en prácticas, competition → competición and puzzle cover → tapacubos. Completed Solves keeps Soluciones completadas in the profile; other nominal solve/solves labels use resolución/resoluciones. Stackmat is forbidden when translating timer references. Notes document the contexts and review decisions.
 
 Defaults are UTF-8 JSON files named with lowercase language codes and underscores, for example es_419.json or pt_br.json. Personal replacements live in <data-dir>/glossaries/<language>.json, outside Git, and take precedence over the complete default for that language. Existing sessions keep their original snapshots. Other languages without a bundled default start with an empty configured catalog and can use terminology downloaded from Weblate.
