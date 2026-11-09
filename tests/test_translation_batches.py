@@ -35,13 +35,13 @@ class BatchOptimizationTests(unittest.TestCase):
 
     def test_short_titles_take_two_requests_for_forty_entries(self):
         translator = Mock()
-        translator.propose.side_effect = lambda provider, model, context, progress=None: {'entries': [{'key': e['key'], 'target': ['Título'], 'note': ''} for e in context['requested_entries']]}
-        state = generate_proposals(self.w, translator, 'openai', 'test-model')
-        self.assertEqual([len(call.args[2]['requested_entries']) for call in translator.propose.call_args_list], [32, 8])
+        translator.propose.side_effect = lambda model, context, progress=None: {'entries': [{'key': e['key'], 'target': ['Título'], 'note': ''} for e in context['requested_entries']]}
+        state = generate_proposals(self.w, {'openai': translator}, 'openai', 'test-model')
+        self.assertEqual([len(call.args[1]['requested_entries']) for call in translator.propose.call_args_list], [32, 8])
         self.assertEqual(state['workspace']['ai_completed'], 40)
         self.assertEqual(state['counts']['accepted'], 0)
         self.assertFalse(state['workspace']['ready'])
-        state = generate_proposals(self.w, translator, 'openai', 'test-model')
+        state = generate_proposals(self.w, {'openai': translator}, 'openai', 'test-model')
         self.assertTrue(state['workspace']['ready'])
         self.assertEqual(state['counts']['pending'], 70)
 
@@ -89,16 +89,16 @@ class BatchOptimizationTests(unittest.TestCase):
 
     def test_completed_batch_survives_failure_and_resume_does_not_repeat_it(self):
         translator = Mock()
-        def propose(provider, model, context, progress=None):
+        def propose(model, context, progress=None):
             return {'entries': [{'key': e['key'], 'target': ['Título'], 'note': ''} for e in context['requested_entries']]}
-        translator.propose.side_effect = [propose(None, None, batch_context(self.w, self.w.work['entries'][:32])), ReviewError('Interrupción simulada')]
-        with self.assertRaises(ReviewError): generate_proposals(self.w, translator, 'openai', 'test-model')
+        translator.propose.side_effect = [propose(None, batch_context(self.w, self.w.work['entries'][:32])), ReviewError('Interrupción simulada')]
+        with self.assertRaises(ReviewError): generate_proposals(self.w, {'openai': translator}, 'openai', 'test-model')
         cache = read_json(self.w.directory(self.w.active_id) / 'generation.json')
         self.assertEqual(len(cache['entries']), 32)
         translator.propose.side_effect = propose
         translator.propose.reset_mock()
-        generate_proposals(self.w, translator, 'openai', 'test-model')
-        resent = {e['key'] for c in translator.propose.call_args_list for e in c.args[2]['requested_entries']}
+        generate_proposals(self.w, {'openai': translator}, 'openai', 'test-model')
+        resent = {e['key'] for c in translator.propose.call_args_list for e in c.args[1]['requested_entries']}
         self.assertFalse(resent.intersection(cache['entries']))
 
     def sse_response(self, result):
@@ -113,7 +113,7 @@ class BatchOptimizationTests(unittest.TestCase):
         auth.access_token.return_value = 'fake-test-token'
         with patch('translation.urllib.request.build_opener') as build:
             build.return_value.open.return_value = self.sse_response(result)
-            restored = OpenAITranslator(Mock(), auth).propose('chatgpt', 'test-model', context)
+            restored = OpenAITranslator(auth.access_token).propose('test-model', context)
             body = json.loads(build.return_value.open.call_args.args[0].data)
         return restored, json.loads(body['input'][0]['content'])
 
@@ -130,10 +130,10 @@ class BatchOptimizationTests(unittest.TestCase):
         good=lambda count:{'entries':[{'key':str(i),'target':['Título'],'note':''} for i in range(1,count+1)]}
         bad={'entries':[{'key':'999','target':['Título'],'note':''}]}
         auth=Mock();auth.access_token.return_value='fake-test-token'
-        translator=OpenAITranslator(Mock(),auth)
+        translator=OpenAITranslator(auth.access_token)
         with patch('translation.urllib.request.build_opener') as build:
             build.return_value.open.side_effect=[self.sse_response(value) for value in (good(32),bad,good(8))]
-            state=generate_proposals(self.w,translator,'chatgpt','test-model')
+            state=generate_proposals(self.w,{'chatgpt':translator},'chatgpt','test-model')
             self.assertEqual(build.return_value.open.call_count,3)
             last=json.loads(build.return_value.open.call_args.args[0].data)
             self.assertIn('validation_feedback',json.loads(last['input'][0]['content']))
@@ -148,7 +148,7 @@ class BatchOptimizationTests(unittest.TestCase):
         with patch('translation.urllib.request.build_opener') as build:
             build.return_value.open.side_effect=[self.sse_response(value) for value in (good,bad,bad)]
             with self.assertRaises(InvalidTemporaryIDs):
-                generate_proposals(self.w,OpenAITranslator(Mock(),auth),'chatgpt','test-model')
+                generate_proposals(self.w,{'chatgpt':OpenAITranslator(auth.access_token)},'chatgpt','test-model')
             self.assertEqual(build.return_value.open.call_count,3)
         folder=self.w.directory(self.w.active_id)
         self.assertEqual(len(read_json(folder/'generation.json')['entries']),32)
@@ -159,6 +159,6 @@ class BatchOptimizationTests(unittest.TestCase):
         translator = Mock()
         context = batch_context(self.w, self.w.work['entries'][:1])
         translator.propose.side_effect = [InvalidTemporaryIDs('IDs inválidos'), {'entries': [{'key': context['requested_entries'][0]['key'], 'target': ['Título'], 'note': ''}]}]
-        generate_proposals(self.w, translator, 'openai', 'test-model', maximum=1)
+        generate_proposals(self.w, {'openai': translator}, 'openai', 'test-model', maximum=1)
         self.assertEqual(translator.propose.call_count, 2)
         self.assertEqual(len(read_json(self.w.directory(self.w.active_id) / 'generation.json')['entries']), 1)

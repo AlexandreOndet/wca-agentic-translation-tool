@@ -340,7 +340,6 @@
   "{0} proposals ready for review; none approved automatically": "{0} propuestas listas para revisar; ninguna aprobada automáticamente",
   "AI did not return a list of proposals.": "La IA no devolvió una lista de propuestas.",
   "AI did not return all batch keys.": "La IA no respondió todas las claves del lote.",
-  "Choose a connected ChatGPT account or OpenAI API to generate translations.": "Elegí ChatGPT conectado u OpenAI API para generar traducciones.",
   "Sync a language first.": "Primero sincronizá un idioma.",
   "This session is already under review. Its proposals will not be replaced.": "Esta sesión ya está en revisión. No se reemplazarán sus propuestas.",
   "Existing proposals loaded; ready for your review": "Propuestas existentes cargadas; listas para tu revisión",
@@ -550,7 +549,5 @@
   "Choose a Claude model.": "Elegí un modelo de Claude.",
   "Claude Code was not found. Install Claude Code and sign in with: claude auth login": "No se encontró Claude Code. Instalalo e iniciá sesión con: claude auth login",
   "Could not start Claude Code. Install Claude Code and sign in with: claude auth login": "No se pudo iniciar Claude Code. Instalalo e iniciá sesión con: claude auth login",
-  "Claude Code did not return valid JSON. Install Claude Code and sign in with: claude auth login": "Claude Code no devolvió JSON válido. Instalalo e iniciá sesión con: claude auth login",
-  "Claude Code did not answer in time. Validated batches can be resumed.": "Claude Code no respondió a tiempo. Los lotes validados se pueden retomar.",
-  "Claude Code request failed: {0}. No translations were approved.": "Falló la solicitud a Claude Code: {0}. No se aprobó ninguna traducción."
+  "Claude Code did not answer in time. Validated batches can be resumed.": "Claude Code no respondió a tiempo. Los lotes validados se pueden retomar."
 }

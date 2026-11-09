@@ -80,7 +80,7 @@ class BrowserTests(unittest.TestCase):
                 connections.configure({'WEBLATE_TOKEN':'fake-test-key'})
                 auth=Mock();auth.status.return_value={'active':'test-account','accounts':[{'id':'test-account','email':'test@example.org','connected':True,'can_translate':True}],'error':None}
                 fake_translator=Mock();fake_translator.models.return_value=[{'id':'test-model','name':'Test model'}]
-                fake_translator.propose.side_effect=lambda provider,model,context,progress=None: {'entries':[{'key':e['key'],'target':['Bonjour, %{name}'] if e['context']=='greeting' else ['Un cube','%{count} cubes','%{count} cubes'],'note':'French test'} for e in context['requested_entries']]}
+                fake_translator.propose.side_effect=lambda model,context,progress=None: {'entries':[{'key':e['key'],'target':['Bonjour, %{name}'] if e['context']=='greeting' else ['Un cube','%{count} cubes','%{count} cubes'],'note':'French test'} for e in context['requested_entries']]}
             elif workspace_mode=='oauth':
                 client=Mock();client.env_path=root/'.env'
                 controller=Workspace(root/'data',client)
@@ -124,7 +124,7 @@ class BrowserTests(unittest.TestCase):
                 controller=Workspace(root/'data',client)
             else:
                 controller=Review(original,proposed,root/'data')
-            server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(controller,connections=connections,auth=auth,translator=fake_translator))
+            server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(controller,connections=connections,auth=auth,translators={'chatgpt':fake_translator} if fake_translator else {}))
             thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
             if workspace_mode=='oauth':
                 class ProviderHandler(BaseHTTPRequestHandler):

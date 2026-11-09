@@ -364,7 +364,7 @@ async function workspaceAction(path, data={}) {
   finally {if(isSync){clearInterval(syncTimer);syncing=false;}buttons.forEach(id=>$(id).disabled=false);showWorkspace();if(path==='/api/sync'){ensureLanguages(true);ensureProjectStatus(true);}}
 }
 $('sync').onclick=()=>act(async()=>{
-  if(['chatgpt','claude-code'].includes(provider()) && !canTranslate()){await refreshConnections();$('connections-dialog').showModal();return;}
+  if(AI[provider()] && !canTranslate()){await refreshConnections();$('connections-dialog').showModal();return;}
   await flush();await ensureModels();
   await workspaceAction('/api/sync',{component:$('component').value,language:$('language').value,provider:provider(),model:$('model').value});
 });
@@ -418,8 +418,13 @@ function setLanguage(code,name) {
 }
 function activeAccount() {return connectionState?.chatgpt.accounts.find(item=>item.id===connectionState.chatgpt.active);}
 function provider() {return $('manual-mode').checked?'manual':state?.workspace?.demo?'demo':$('ai-provider').value;}
-function canTranslate() {return provider()==='claude-code'?!!connectionState?.claude_code?.logged_in:!!activeAccount()?.can_translate;}
-function connectLabel() {return provider()==='claude-code'?t("Sign in to Claude Code"):t("Connect ChatGPT");}
+// key scopes the model cache: per ChatGPT account, one entry for the local CLI.
+const AI={
+  chatgpt:{connect:()=>t("Connect ChatGPT"),ready:()=>!!activeAccount()?.can_translate,key:()=>activeAccount()?.id},
+  'claude-code':{connect:()=>t("Sign in to Claude Code"),ready:()=>!!connectionState?.claude_code?.logged_in,key:()=>'claude-code'},
+};
+function canTranslate() {return !!AI[provider()]?.ready();}
+function connectLabel() {return (AI[provider()] || AI.chatgpt).connect();}
 function showAIOptions() {
   const manual=$('manual-mode').checked, demo=state?.workspace?.demo;
   $('manual-tools').hidden=!manual;
@@ -479,10 +484,10 @@ async function ensureProjectStatus(force=false) {
     if($('language').value===language){projectStatus=result.status;showWorkspaceWarnings();}
   });
 }
-function rememberedModel() {try{return localStorage.getItem('wca-model') || '';}catch{return '';}}
+function rememberedModel() {try{return localStorage.getItem('wca-model:'+provider()) || '';}catch{return '';}}
 async function ensureModels() {
-  const name=provider(), key=name==='claude-code'?name:activeAccount()?.id;
-  if(!state?.workspace || !canTranslate() || syncing || name==='manual' || state.workspace.demo)return;
+  const name=provider(), key=AI[name]?.key();
+  if(!state?.workspace || !canTranslate() || syncing || state.workspace.demo)return;
   const fill=items=>{
     const wanted=$('model').value || rememberedModel() || connectionState.config.model;
     $('model').replaceChildren(...items.map(item=>new Option(item.name || item.id,item.id)));
@@ -492,7 +497,7 @@ async function ensureModels() {
   return catalogTask('models:'+key,"Loading models…",async()=>{
     const result=await api('/api/models?provider='+encodeURIComponent(name));
     if(!result.items.length)throw new Error(t("The account returned no available models."));
-    if(provider()!==name || (name==='chatgpt' && activeAccount()?.id!==key))return;
+    if(provider()!==name || AI[name].key()!==key)return;
     fill(result.items);
     modelCache.set(key,result.items);
   });
@@ -500,7 +505,7 @@ async function ensureModels() {
 $('language').onfocus=()=>{ensureLanguages();};
 $('language').onchange=()=>{showWorkspaceWarnings();ensureProjectStatus();};
 $('model').onfocus=()=>{ensureModels();};
-$('model').onchange=()=>{try{localStorage.setItem('wca-model',$('model').value);}catch{}};
+$('model').onchange=()=>{try{localStorage.setItem('wca-model:'+provider(),$('model').value);}catch{}};
 try{if(localStorage.getItem('wca-provider')==='claude-code')$('ai-provider').value='claude-code';}catch{}
 $('ai-provider').onchange=()=>act(async()=>{
   try{localStorage.setItem('wca-provider',$('ai-provider').value);}catch{}
@@ -545,7 +550,7 @@ $('connections-save').onclick=()=>act(async()=>{
 });
 $('chatgpt-connect').onclick=()=>act(async()=>{
   await flush();
-  if(activeAccount()?.connected){await api('/api/chatgpt/disconnect',{});modelCache.clear();$('model').replaceChildren(new Option(t("Connect ChatGPT"),''));await refreshConnections();return;}
+  if(activeAccount()?.connected){await api('/api/chatgpt/disconnect',{});modelCache.clear();$('model').replaceChildren(new Option(connectLabel(),''));await refreshConnections();return;}
   const account=activeAccount();
   const result=await api('/api/chatgpt/start',account && !$('chatgpt-new-account').checked ? {account_id:account.id} : {});window.location.assign(result.url);
 });
