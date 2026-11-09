@@ -27,7 +27,15 @@ try{
  await evaluate("document.querySelector('.edit-form').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}))");
  await wait('state.counts.edited===1 && saving===0');
  assert(await evaluate('current().proposed.length===3'),'All three plural forms are present');
+ assert(await evaluate("document.getElementById('next-step').hidden"),'Next step stays hidden while entries are pending');
  await click('accept');await wait('state.counts.accepted===2 && saving===0');
+ await wait("!document.getElementById('next-step').hidden && document.activeElement?.id==='next-download'");
+ assert(await evaluate("document.getElementById('next-weblate').hidden"),'Weblate link waits for the download');
+ await click('next-download');await wait("document.getElementById('export-dialog').open && !document.getElementById('download').disabled");
+ await evaluate("document.getElementById('confirm-warnings').checked=true");
+ await click('download');await wait("!document.getElementById('export-dialog').open");
+ assert(await evaluate("document.getElementById('next-step-text').textContent.includes('DEMO_') && document.getElementById('next-weblate').hidden"),'Test downloads never point to Weblate');
+ assert(await evaluate("state.workspace.demo=false;showNextStep();const a=document.getElementById('next-weblate');const ok=!a.hidden && a.href.endsWith('/projects/wca/'+state.workspace.component+'/'+state.workspace.language+'/');state.workspace.demo=true;showNextStep();ok"),'Real downloads link to the Weblate translation page');
  const result=await evaluate("api('/api/export',{revision:state.revision})");
  assert(result.ok && result.filename.startsWith('DEMO_') && result.content.includes('Hola, %{name}') && result.content.includes('Ya traducido'),'Demo exports approved changes with a marker');
  const suggestions=await evaluate("api('/api/export',{revision:state.revision,mode:'suggestions'})");

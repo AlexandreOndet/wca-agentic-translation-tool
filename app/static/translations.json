@@ -552,5 +552,11 @@
   "Could not start Claude Code. Install Claude Code and sign in with: claude auth login": "No se pudo iniciar Claude Code. Instalalo e iniciá sesión con: claude auth login",
   "Claude Code did not return valid JSON. Install Claude Code and sign in with: claude auth login": "Claude Code no devolvió JSON válido. Instalalo e iniciá sesión con: claude auth login",
   "Claude Code did not answer in time. Validated batches can be resumed.": "Claude Code no respondió a tiempo. Los lotes validados se pueden retomar.",
-  "Claude Code request failed: {0}. No translations were approved.": "Falló la solicitud a Claude Code: {0}. No se aprobó ninguna traducción."
+  "Claude Code request failed: {0}. No translations were approved.": "Falló la solicitud a Claude Code: {0}. No se aprobó ninguna traducción.",
+  "Download again": "Descargar de nuevo",
+  "Open {0} in Weblate ↗": "Abrir {0} en Weblate ↗",
+  "All entries reviewed. Nothing to upload: no entry was accepted or edited.": "Revisaste todas las entradas. No hay nada para subir: ninguna entrada se aceptó ni editó.",
+  "All {0} entries reviewed. Next step: download the file, then upload it in Weblate.": "Revisaste las {0} entradas. Próximo paso: descargá el archivo y después subilo a Weblate.",
+  "Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate.": "Archivo de prueba descargado. Nunca subas archivos DEMO_ o SIMULATION_ a Weblate.",
+  "File downloaded, but Weblate does not have it yet. Last step: open Weblate, then Files → Upload translation, pick the file and choose Add as translation (never Replace). Afterwards, Sync & Translate here should show nothing pending.": "Archivo descargado, pero Weblate todavía no lo tiene. Último paso: abrí Weblate, después Files → Upload translation, elegí el archivo y marcá Add as translation (nunca Replace). Después, Sincronizar y traducir acá no debería mostrar nada pendiente."
 }
