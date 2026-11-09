@@ -558,5 +558,16 @@
   "All entries reviewed. Nothing to upload: no entry was accepted or edited.": "Revisaste todas las entradas. No hay nada para subir: ninguna entrada se aceptó ni editó.",
   "All {0} entries reviewed. Next step: download the file, then upload it in Weblate.": "Revisaste las {0} entradas. Próximo paso: descargá el archivo y después subilo a Weblate.",
   "Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate.": "Archivo de prueba descargado. Nunca subas archivos DEMO_ o SIMULATION_ a Weblate.",
-  "File downloaded, but Weblate does not have it yet. Last step: open Weblate, then Files → Upload translation, pick the file and choose Add as translation (never Replace). Afterwards, Sync & Translate here should show nothing pending.": "Archivo descargado, pero Weblate todavía no lo tiene. Último paso: abrí Weblate, después Files → Upload translation, elegí el archivo y marcá Add as translation (nunca Replace). Después, Sincronizar y traducir acá no debería mostrar nada pendiente."
+  "File downloaded, but Weblate does not have it yet. Last step: open Weblate, then Files → Upload translation, pick the file and choose Add as translation (never Replace). Afterwards, Sync & Translate here should show nothing pending.": "Archivo descargado, pero Weblate todavía no lo tiene. Último paso: abrí Weblate, después Files → Upload translation, elegí el archivo y marcá Add as translation (nunca Replace). Después, Sincronizar y traducir acá no debería mostrar nada pendiente.",
+  "Reference language": "Idioma de referencia",
+  "None · translate from English": "Ninguno · traducir desde el inglés",
+  "Use reference as proposals": "Usar la referencia como propuestas",
+  "Use {0} as proposals": "Usar {0} como propuestas",
+  "Reference · {0}": "Referencia · {0}",
+  "Glossary: {0}": "Glosario: {0}",
+  "Glossary changes from the reference:\n{0}": "Cambios de glosario respecto de la referencia:\n{0}",
+  "Reference languages are not available in the demo.": "Los idiomas de referencia no están disponibles en la demo.",
+  "Choose a reference language other than English and the target language.": "Elegí un idioma de referencia distinto del inglés y del idioma de destino.",
+  "Some entries have no reference translation. Translate them with AI or from chat instead.": "Algunas entradas no tienen traducción de referencia. Traducilas con IA o desde el chat.",
+  "proposals.json already exists in this session. Load it, or create another session.": "proposals.json ya existe en esta sesión. Cargalo o creá otra sesión."
 }

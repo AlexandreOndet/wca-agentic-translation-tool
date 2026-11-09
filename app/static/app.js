@@ -64,6 +64,8 @@ function showWorkspace() {
   $('open-session').disabled=!w.sessions.length;
   $('copy-prompt').disabled=!w.active_id || !w.candidate_count;
   $('load-proposals').disabled=!w.active_id || !w.candidate_count;
+  $('reference-proposals').hidden=!w.reference || !w.candidate_count || w.ready;
+  $('reference-proposals').textContent=t("Use {0} as proposals", w.reference?.language_name || '');
   $('export').disabled=!w.active_id || (!!w.candidate_count && !w.ready);
   $('agent-prompt').value=w.prompt;
   $('session-folder').textContent=w.folder ? t("Working folder: {0}", w.folder) : '';
@@ -152,6 +154,22 @@ function diff(a, b) {
   return [old, proposed];
 }
 function diffText(parts, className) { const box = textNode('div','','text'); for (const part of parts) box.append(textNode('span',part.text,part.changed ? className : '')); return box; }
+function flagLabel(flag) { return `${flag.term} → ${flag.replacement.join(' / ')}`; }
+function flagText(value, flags, label) {
+  const box = textNode('div','','text');
+  if (label) box.append(textNode('div',label,'plural-label'));
+  const terms = flags.map(flag => flag.term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  const pattern = terms.length && new RegExp(`(?<![\\p{L}\\p{N}_])(${terms.join('|')})(?![\\p{L}\\p{N}_])`,'giu');
+  let last = 0;
+  for (const match of pattern ? value.matchAll(pattern) : []) {
+    box.append(value.slice(last, match.index));
+    const flag = flags.find(item => item.term.toLocaleLowerCase() === match[0].toLocaleLowerCase()) || flags[0];
+    const mark = textNode('mark',match[0],'flag'); mark.title = t("Glossary: {0}", flagLabel(flag)); box.append(mark);
+    last = match.index + match[0].length;
+  }
+  box.append(value.slice(last));
+  return box;
+}
 function editorValues() { return [...document.querySelectorAll('.edit-form')].map(el => el.value); }
 function renderEntry() {
   const e=current(); $('review').hidden = !e;
@@ -160,14 +178,20 @@ function renderEntry() {
   $('context').textContent = e.context || t("No context"); $('status').textContent = t(labels[e.decision.status]) + (e.conflict ? t(" · Conflict") : '');
   $('source').replaceChildren();
   e.source.forEach((value,i) => { if (e.source.length>1) $('source').append(textNode('div',i===0?t("Singular"):t("Plural"),'plural-label')); $('source').append(textNode('div',value,'text')); });
+  $('reference-panel').hidden = !e.reference;
+  if (e.reference) {
+    $('reference-title').textContent = t("Reference · {0}", state.workspace.reference?.language || '');
+    $('reference-text').replaceChildren(...e.reference.map((value,i) => flagText(value, e.reference_flags, e.plural_forms?.[i])));
+  }
   $('forms').replaceChildren();
   const values = e.decision.draft || (e.decision.status==='edited' ? e.decision.values : e.proposed);
   e.original.forEach((old,i) => {
     if (e.original.length>1) $('forms').append(textNode('div',t("Plural form {0}", e.plural_forms?.[i] || i),'plural-label'));
-    const [before,after] = diff(old,values[i]);
+    const fromReference = !old.trim() && !!e.reference;
+    const [before,after] = diff(fromReference ? e.reference[i] : old,values[i]);
     const comparison = textNode('div','','comparison');
     const oldBox = textNode('section','','translation'), newBox = textNode('section','','translation proposal');
-    oldBox.append(textNode('h3',t("Original translation")), diffText(before,'removed'));
+    oldBox.append(textNode('h3',fromReference ? t("Reference · {0}", state.workspace.reference.language) : t("Original translation")), diffText(before,'removed'));
     newBox.append(textNode('h3',e.decision.status==='edited' || e.decision.draft ? t("Your version") : t("Proposal")), diffText(after,'added'));
     comparison.append(oldBox,newBox); $('forms').append(comparison);
   });
@@ -194,7 +218,7 @@ function renderEntry() {
   $('resolution').textContent = e.conflict ? t("Awaiting resolution.") : resolution==='current' ? t("Resolution: keep the recent version.") : resolution==='chosen' ? t("Resolution: use your decision.") : t("The recent version already matches your choice for this entry.");
   $('use-chosen').disabled = e.decision.status==='pending';
   $('accept').textContent=editing || e.decision.draft || e.decision.status==='edited' ? t("Save edit · A") : t("Accept · A");
-  $('metadata').textContent = [t("Context: {0}", e.context || t("(empty)")),t("Developer comments:\n{0}", e.comment || t("(none)")),t("Translator comments:\n{0}", e.translator_comment || t("(none)")),t("References:\n{0}", e.references.map(([file,line])=>file+(line?':'+line:'')).join('\n') || t("(none)")),t("Flags: {0}", e.flags.join(', ') || t("(none)")), ...(e.reasons ? [t("Reasons: {0}", e.reasons.join(', '))] : []), ...(e.previous_source ? [t("Previous English:\n{0}", e.previous_source.join('\n'))] : []), ...(e.previous_translation ? [t("Previous translation:\n{0}", e.previous_translation.join('\n'))] : []), ...(e.note ? [t("Agent note:\n{0}", e.note)] : []), ...(e.simulation_reference ? [t("Reference before simulation:\n{0}", e.simulation_reference.join('\n'))] : [])].join('\n\n');
+  $('metadata').textContent = [t("Context: {0}", e.context || t("(empty)")),t("Developer comments:\n{0}", e.comment || t("(none)")),t("Translator comments:\n{0}", e.translator_comment || t("(none)")),t("References:\n{0}", e.references.map(([file,line])=>file+(line?':'+line:'')).join('\n') || t("(none)")),t("Flags: {0}", e.flags.join(', ') || t("(none)")), ...(e.reasons ? [t("Reasons: {0}", e.reasons.join(', '))] : []), ...(e.previous_source ? [t("Previous English:\n{0}", e.previous_source.join('\n'))] : []), ...(e.previous_translation ? [t("Previous translation:\n{0}", e.previous_translation.join('\n'))] : []), ...(e.note ? [t("Agent note:\n{0}", e.note)] : []), ...(e.reference_flags?.length ? [t("Glossary changes from the reference:\n{0}", e.reference_flags.map(flagLabel).join('\n'))] : []), ...(e.simulation_reference ? [t("Reference before simulation:\n{0}", e.simulation_reference.join('\n'))] : [])].join('\n\n');
   $('decision-note').textContent = e.decision.draft ? t("You have a saved draft. It still needs approval.") : e.decision.status==='accepted' ? t("The proposal will be exported.") : e.decision.status==='edited' ? t("Your approved edit will be exported.") : t("The base translation will be kept (original or recent PO).");
   const filtered=visible(), index=filtered.findIndex(item=>item.key===selected);
   $('prev').disabled=index<=0; $('next').disabled=index<0 || index===filtered.length-1;
@@ -385,7 +409,7 @@ async function workspaceAction(path, data={}) {
   const isSync=path==='/api/sync' || path==='/api/generate';
   if(isSync)syncStart();
   else $('error').hidden=true;
-  const buttons=['language','model','manual-mode','generate','component','sync','open-session','copy-prompt','load-proposals','export'];
+  const buttons=['language','reference','model','manual-mode','generate','reference-proposals','component','sync','open-session','copy-prompt','load-proposals','export'];
   buttons.forEach(id=>$(id).disabled=true);
   $('workspace-detail').textContent=path==='/api/sync' ? t("Downloading the current bases from Weblate…") : t("Loading the session…");
   try {state=await api(path,data);syncFailed=false;if(state.workspace.component)$('component').value=state.workspace.component;setLanguage(state.workspace.language,state.workspace.language_name);selected=state.entries[0]?.key;editing=!!current()?.decision.draft;render();}
@@ -395,10 +419,11 @@ async function workspaceAction(path, data={}) {
 $('sync').onclick=()=>act(async()=>{
   if(['chatgpt','claude-code'].includes(provider()) && !canTranslate()){await refreshConnections();$('connections-dialog').showModal();return;}
   await flush();await ensureModels();
-  await workspaceAction('/api/sync',{component:$('component').value,language:$('language').value,provider:provider(),model:$('model').value});
+  await workspaceAction('/api/sync',{component:$('component').value,language:$('language').value,reference:$('reference').value || null,provider:provider(),model:$('model').value});
 });
 $('open-session').onclick=()=>act(()=>workspaceAction('/api/open',{target_id:$('sessions').value}));
 $('load-proposals').onclick=()=>act(()=>workspaceAction('/api/load-proposals'));
+$('reference-proposals').onclick=()=>act(()=>workspaceAction('/api/reference-proposals'));
 $('copy-prompt').onclick=()=>act(async()=>{
   $('prompt-details').open=true;
   try {await navigator.clipboard.writeText(state.workspace.prompt);$('save').textContent=t("✓ Prompt copied. Paste it into this project’s chat.");}
@@ -497,7 +522,16 @@ async function ensureLanguages(force=false) {
     const code=$('language').value;
     $('language').replaceChildren(...result.items.map(item=>new Option(t("{0} · {1} · {2} pending", languageName(item.code,item.name), item.code, Math.max(0,item.total-item.translated)),item.code)));
     if(result.items.some(item=>item.code===code))$('language').value=code;
+    fillReference();
   });
+}
+function fillReference() {
+  const target=$('language').value;
+  let remembered='';
+  try{remembered=localStorage.getItem('wca-reference:'+target) || '';}catch{}
+  const items=(languageCache.get($('component').value) || []).filter(item=>item.code!==target);
+  $('reference').replaceChildren(new Option(t("None · translate from English"),''),...items.map(item=>new Option(`${languageName(item.code,item.name)} · ${item.code}`,item.code)));
+  $('reference').value=items.some(item=>item.code===remembered)?remembered:'';
 }
 async function ensureProjectStatus(force=false) {
   if(!state?.workspace || syncing || state.workspace.demo || state.workspace.simulation)return;
@@ -527,7 +561,8 @@ async function ensureModels() {
   });
 }
 $('language').onfocus=()=>{ensureLanguages();};
-$('language').onchange=()=>{showWorkspaceWarnings();ensureProjectStatus();};
+$('language').onchange=()=>{fillReference();showWorkspaceWarnings();ensureProjectStatus();};
+$('reference').onchange=()=>{try{localStorage.setItem('wca-reference:'+$('language').value,$('reference').value);}catch{}};
 $('model').onfocus=()=>{ensureModels();};
 $('model').onchange=()=>{try{localStorage.setItem('wca-model',$('model').value);}catch{}};
 try{if(localStorage.getItem('wca-provider')==='claude-code')$('ai-provider').value='claude-code';}catch{}
@@ -537,7 +572,7 @@ $('ai-provider').onchange=()=>act(async()=>{
 });
 $('component').onchange=()=>act(async()=>{
   const items=languageCache.get($('component').value);
-  if(items){const previous=$('language').value;$('language').replaceChildren(...items.map(item=>new Option(t("{0} · {1} · {2} pending", languageName(item.code,item.name), item.code, Math.max(0,item.total-item.translated)),item.code)));if(items.some(item=>item.code===previous))$('language').value=previous;}
+  if(items){const previous=$('language').value;$('language').replaceChildren(...items.map(item=>new Option(t("{0} · {1} · {2} pending", languageName(item.code,item.name), item.code, Math.max(0,item.total-item.translated)),item.code)));if(items.some(item=>item.code===previous))$('language').value=previous;fillReference();}
   else await ensureLanguages();
   await flush();ensureProjectStatus();catalogStatus();
 });

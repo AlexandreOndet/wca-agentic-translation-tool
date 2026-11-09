@@ -37,6 +37,10 @@ UI edits are personal to your local data folder. To contribute your team's revie
 
 Personal catalogs take precedence over repository defaults, so review updates with your team when adopting a newer shared version. The [README](README.md#language-glossaries) documents the file format, validation and direct import.
 
+## Translate from another language (for example fr → fr-CA)
+
+If your language is adapted from another one rather than from English, choose it in **More options → Reference language** before syncing. The choice is remembered per target language, and the default **None** keeps the usual English workflow. Upload the reference language's translations to Weblate first: the sync downloads them read-only. Each entry then shows the reference text, with the words your glossary wants changed highlighted (for example *Petit-déjeuner → Déjeuner*). **Use … as proposals** copies the reference into the proposals so you only edit what differs; the diff is shown against the reference. AI and chat proposals also receive the reference. Nothing is approved automatically.
+
 ## In the application
 
 1. Choose **🇺🇸 EN** for English or **🇦🇷 ES** for Spanish. This changes the interface only.

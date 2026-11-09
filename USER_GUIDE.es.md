@@ -37,6 +37,10 @@ Los cambios de la UI son personales y se guardan en tu carpeta local de datos. P
 
 Los catálogos personales tienen prioridad sobre los predeterminados del repositorio. Revisá las actualizaciones con el equipo al adoptar una versión compartida más reciente. El [README](README.es.md#glosarios-por-idioma) documenta el formato, la validación y la importación directa.
 
+## Traducir desde otro idioma (por ejemplo fr → fr-CA)
+
+Si tu idioma se adapta de otro en lugar del inglés, elegilo en **Más opciones → Idioma de referencia** antes de sincronizar. La elección se recuerda por idioma de destino y la opción predeterminada **Ninguno** mantiene el flujo habitual desde el inglés. Primero subí a Weblate las traducciones del idioma de referencia: la sincronización las descarga en modo de solo lectura. Cada entrada muestra el texto de referencia con resaltadas las palabras que tu glosario pide cambiar (por ejemplo *Petit-déjeuner → Déjeuner*). **Usar … como propuestas** copia la referencia en las propuestas para que solo edites lo que cambia; la diferencia se muestra contra la referencia. Las propuestas de IA y del chat también reciben la referencia. Nada se aprueba automáticamente.
+
 ## En la aplicación
 
 1. Elegí **🇺🇸 EN** para inglés o **🇦🇷 ES** para español. Esto cambia solo la interfaz.

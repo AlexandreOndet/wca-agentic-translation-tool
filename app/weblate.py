@@ -232,6 +232,16 @@ class Client:
                     raise ReviewError('Weblate kept changing during both downloads. The local session was not updated; wait a moment and sync again.') from None
                 self.notify(1, 'Weblate changed during download. Retrying with a new base (2/2)')
 
+    def download_reference(self, language):
+        target = self.language
+        self.language = language
+        try:
+            # Client.download, not self.download: the simulation must not blank the reference.
+            result = Client.download(self)
+        finally:
+            self.language = target
+        return {'target': result['target'], 'glossary': result['glossary'], 'metadata': result['metadata'].get(language, {})}
+
     def _download_once(self):
         self.notify(1, 'Checking English and selected language status')
         target_language = self.language
