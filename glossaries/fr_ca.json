@@ -10,7 +10,7 @@
         "Cube 2x2x2"
       ],
       "forbidden": [],
-      "note": "Locales: events.222."
+      "note": "Locales: events->222."
     },
     {
       "source": [
@@ -20,7 +20,7 @@
         "3x3x3 à l'aveugle"
       ],
       "forbidden": [],
-      "note": "Locales: events.333bf."
+      "note": "Locales: events->333bf."
     },
     {
       "source": [
@@ -30,7 +30,7 @@
         "Cube 3x3x3"
       ],
       "forbidden": [],
-      "note": "Locales: events.333."
+      "note": "Locales: events->333."
     },
     {
       "source": [
@@ -40,7 +40,7 @@
         "3x3x3 résolution optimisée"
       ],
       "forbidden": [],
-      "note": "Locales: events.333fm ; Règlement 1f."
+      "note": "Locales: events->333fm; Regulations: 1f."
     },
     {
       "source": [
@@ -50,7 +50,7 @@
         "3x3x3 résolutions multiples à l'aveugle"
       ],
       "forbidden": [],
-      "note": "Locales: events.333mbf."
+      "note": "Locales: events->333mbf."
     },
     {
       "source": [
@@ -60,7 +60,7 @@
         "3x3x3 à une main"
       ],
       "forbidden": [],
-      "note": "Locales: events.333oh."
+      "note": "Locales: events->333oh."
     },
     {
       "source": [
@@ -70,7 +70,7 @@
         "Cube 4x4x4 à l'aveugle"
       ],
       "forbidden": [],
-      "note": "Locales: events.444bf. Incohérent avec « 3x3x3 à l'aveugle » (sans « Cube »)."
+      "note": "Locales: events->444bf. Incohérent avec « 3x3x3 à l'aveugle » (sans « Cube »)."
     },
     {
       "source": [
@@ -80,7 +80,7 @@
         "Cube 4x4x4"
       ],
       "forbidden": [],
-      "note": "Locales: events.444."
+      "note": "Locales: events->444."
     },
     {
       "source": [
@@ -90,7 +90,7 @@
         "Cube 5x5x5 à l'aveugle"
       ],
       "forbidden": [],
-      "note": "Locales: events.555bf. Même incohérence que 4x4x4."
+      "note": "Locales: events->555bf. Même incohérence que 4x4x4."
     },
     {
       "source": [
@@ -100,7 +100,7 @@
         "Cube 5x5x5"
       ],
       "forbidden": [],
-      "note": "Locales: events.555."
+      "note": "Locales: events->555."
     },
     {
       "source": [
@@ -110,7 +110,7 @@
         "Cube 6x6x6"
       ],
       "forbidden": [],
-      "note": "Locales: events.666."
+      "note": "Locales: events->666."
     },
     {
       "source": [
@@ -120,7 +120,7 @@
         "Cube 7x7x7"
       ],
       "forbidden": [],
-      "note": "Locales: events.777."
+      "note": "Locales: events->777."
     },
     {
       "source": [
@@ -154,7 +154,7 @@
         "essais"
       ],
       "forbidden": [],
-      "note": "Règlement : toujours « essai ». Locales utilise parfois « tentative »."
+      "note": "Regulations: toujours « essai ». Locales utilise parfois « tentative »."
     },
     {
       "source": [
@@ -226,7 +226,7 @@
         "bandeau"
       ],
       "forbidden": [],
-      "note": "Règlement B1b."
+      "note": "Regulations: B1b."
     },
     {
       "source": [
@@ -236,7 +236,7 @@
         "phase de résolution à l'aveugle"
       ],
       "forbidden": [],
-      "note": "Règlement B4."
+      "note": "Regulations: B4."
     },
     {
       "source": [
@@ -246,7 +246,7 @@
         "Déjeuner"
       ],
       "forbidden": [],
-      "note": "Locales fr-CA : déjeuner, dîner, souper."
+      "note": "Locales fr-CA: déjeuner, dîner, souper. En fr, « Déjeuner » est le repas de midi : ne pas copier les repas entre fr.json et fr_ca.json."
     },
     {
       "source": [
@@ -258,7 +258,7 @@
         "pièces centrales"
       ],
       "forbidden": [],
-      "note": "Règlement 3l1."
+      "note": "Regulations: 3l1."
     },
     {
       "source": [
@@ -387,8 +387,11 @@
         "tour avec seuil",
         "tours avec seuil"
       ],
-      "forbidden": [],
-      "note": "Locales fr-CA : « tour avec seuil »."
+      "forbidden": [
+        "tour avec « Cutoff »",
+        "tours avec « Cutoff »"
+      ],
+      "note": "Locales fr-CA: « tour avec seuil » ; « cutoff » n'apparaît jamais hors paramètres. Le terme isolé n'est pas interdit car il correspond aux paramètres %{cutoff}."
     },
     {
       "source": [
@@ -406,7 +409,7 @@
         "Délégué·e"
       ],
       "forbidden": [],
-      "note": "Locales, Règlement. Majuscule pour le rôle."
+      "note": "Locales, Regulations. Majuscule pour le rôle."
     },
     {
       "source": [
@@ -427,8 +430,10 @@
       "preferred": [
         "Souper"
       ],
-      "forbidden": [],
-      "note": "Locales fr-CA : déjeuner, dîner, souper."
+      "forbidden": [
+        "Dîner"
+      ],
+      "note": "Locales fr-CA: déjeuner, dîner, souper. En fr, « Dîner » est le repas du soir : ne pas copier les repas entre fr.json et fr_ca.json."
     },
     {
       "source": [
@@ -438,7 +443,7 @@
         "disqualification"
       ],
       "forbidden": [],
-      "note": "Règlement 5d3."
+      "note": "Regulations: 5d3."
     },
     {
       "source": [
@@ -459,6 +464,18 @@
       ],
       "forbidden": [],
       "note": "Abréviation, non traduite."
+    },
+    {
+      "source": [
+        "Dual Round",
+        "Dual Rounds"
+      ],
+      "preferred": [
+        "double confrontation",
+        "doubles confrontations"
+      ],
+      "forbidden": [],
+      "note": "Locales: competitions->live->admin->add_competitor->multiple_rounds; competitions->competition_form->hints->website->scoretaking_software."
     },
     {
       "source": [
@@ -485,11 +502,9 @@
       ],
       "forbidden": [
         "e-mail",
-        "e-mails",
-        "email",
-        "emails"
+        "e-mails"
       ],
-      "note": "Locales fr-CA remplace systématiquement « e-mail » par « courriel »."
+      "note": "Locales fr-CA remplace systématiquement « e-mail » par « courriel ». « email » n'est pas interdit car il correspond aux paramètres %{email}."
     },
     {
       "source": [
@@ -513,7 +528,7 @@
         "essais supplémentaires"
       ],
       "forbidden": [],
-      "note": "Règlement"
+      "note": "Regulations"
     },
     {
       "source": [
@@ -523,7 +538,7 @@
         "mouvements de face"
       ],
       "forbidden": [],
-      "note": "Règlement 12a1."
+      "note": "Regulations: 12a1."
     },
     {
       "source": [
@@ -546,7 +561,7 @@
         "finale"
       ],
       "forbidden": [],
-      "note": "Règlement 9b7b, 11f1c."
+      "note": "Regulations: 9b7b, 11f1c."
     },
     {
       "source": [
@@ -556,7 +571,7 @@
         "phase Finale"
       ],
       "forbidden": [],
-      "note": "Règlement I2."
+      "note": "Regulations: I2."
     },
     {
       "source": [
@@ -567,18 +582,6 @@
       ],
       "forbidden": [],
       "note": "Locales"
-    },
-    {
-      "source": [
-        "Full Delegate",
-        "Full Delegates"
-      ],
-      "preferred": [
-        "Délégué Titulaire",
-        "Délégués Titulaires"
-      ],
-      "forbidden": [],
-      "note": "Locales dit « délégué principal », déjà utilisé pour Lead Delegate. « Titulaire » retenu lors d'une revue récente. À confirmer."
     },
     {
       "source": [
@@ -636,7 +639,7 @@
         "inspection"
       ],
       "forbidden": [],
-      "note": "Règlement A3."
+      "note": "Regulations: A3."
     },
     {
       "source": [
@@ -648,7 +651,7 @@
         "juges"
       ],
       "forbidden": [],
-      "note": "Règlement"
+      "note": "Regulations"
     },
     {
       "source": [
@@ -684,28 +687,15 @@
     },
     {
       "source": [
-        "log",
-        "logs"
-      ],
-      "preferred": [
-        "journal",
-        "journaux"
-      ],
-      "forbidden": [
-        "log",
-        "logs"
-      ],
-      "note": "Locales fr-CA : « Journal d'Incidents »."
-    },
-    {
-      "source": [
         "Lunch"
       ],
       "preferred": [
         "Dîner"
       ],
-      "forbidden": [],
-      "note": "Locales fr-CA : déjeuner, dîner, souper."
+      "forbidden": [
+        "Déjeuner"
+      ],
+      "note": "Locales fr-CA: déjeuner, dîner, souper. En fr, « Déjeuner » est le repas de midi : ne pas copier les repas entre fr.json et fr_ca.json."
     },
     {
       "source": [
@@ -715,7 +705,7 @@
         "tapis"
       ],
       "forbidden": [],
-      "note": "Règlement 7f1b."
+      "note": "Regulations: 7f1b."
     },
     {
       "source": [
@@ -729,7 +719,7 @@
         "moyenne arithmétique"
       ],
       "forbidden": [],
-      "note": "Locales : « mean » et « average » donnent tous deux « moyenne »."
+      "note": "Locales: « mean » et « average » donnent tous deux « moyenne »."
     },
     {
       "source": [
@@ -769,7 +759,7 @@
         "phase de mémorisation"
       ],
       "forbidden": [],
-      "note": "Règlement B3."
+      "note": "Regulations: B3."
     },
     {
       "source": [
@@ -779,7 +769,7 @@
         "désalignement"
       ],
       "forbidden": [],
-      "note": "Règlement 10f."
+      "note": "Regulations: 10f."
     },
     {
       "source": [
@@ -835,7 +825,7 @@
         "épreuves officielles"
       ],
       "forbidden": [],
-      "note": "Règlement 9b."
+      "note": "Regulations: 9b."
     },
     {
       "source": [
@@ -885,7 +875,7 @@
         "OBTM"
       ],
       "forbidden": [],
-      "note": "Règlement 12a5, non traduit (« la métrique OBTM »)."
+      "note": "Regulations: 12a5, non traduit (« la métrique OBTM »)."
     },
     {
       "source": [
@@ -944,7 +934,7 @@
         "cache du casse-tête"
       ],
       "forbidden": [],
-      "note": "Règlement B2c."
+      "note": "Regulations: B2c."
     },
     {
       "source": [
@@ -956,7 +946,7 @@
         "défauts de casse-tête"
       ],
       "forbidden": [],
-      "note": "Règlement 5d."
+      "note": "Regulations: 5d."
     },
     {
       "source": [
@@ -966,7 +956,7 @@
         "état du casse-tête"
       ],
       "forbidden": [],
-      "note": "Règlement 12i+."
+      "note": "Regulations: 12i+."
     },
     {
       "source": [
@@ -1018,7 +1008,7 @@
         "phase Quarts de finale"
       ],
       "forbidden": [],
-      "note": "Règlement I2."
+      "note": "Regulations: I2."
     },
     {
       "source": [
@@ -1028,7 +1018,7 @@
         "état aléatoire"
       ],
       "forbidden": [],
-      "note": "Règlement 4b3."
+      "note": "Regulations: 4b3."
     },
     {
       "source": [
@@ -1086,7 +1076,7 @@
         "records régionaux"
       ],
       "forbidden": [],
-      "note": "Règlement 11f1a."
+      "note": "Regulations: 11f1a."
     },
     {
       "source": [
@@ -1179,7 +1169,7 @@
         "rotations"
       ],
       "forbidden": [],
-      "note": "Règlement 12a4."
+      "note": "Regulations: 12a4."
     },
     {
       "source": [
@@ -1269,7 +1259,7 @@
         "séquences de mélange"
       ],
       "forbidden": [],
-      "note": "Règlement 4a."
+      "note": "Regulations: 4a."
     },
     {
       "source": [
@@ -1281,7 +1271,7 @@
         "mélangeurs"
       ],
       "forbidden": [],
-      "note": "Règlement 1f. Pour le logiciel : « générateur de mélanges »."
+      "note": "Regulations: 1f. Pour le logiciel : « générateur de mélanges »."
     },
     {
       "source": [
@@ -1291,7 +1281,7 @@
         "orientation lors des mélanges"
       ],
       "forbidden": [],
-      "note": "Règlement 4d."
+      "note": "Regulations: 4d."
     },
     {
       "source": [
@@ -1321,7 +1311,7 @@
         "phase Demi-finale"
       ],
       "forbidden": [],
-      "note": "Règlement I2."
+      "note": "Regulations: I2."
     },
     {
       "source": [
@@ -1353,7 +1343,7 @@
         "Single"
       ],
       "forbidden": [],
-      "note": "Locales : type de résultat, non traduit."
+      "note": "Locales: type de résultat, non traduit."
     },
     {
       "source": [
@@ -1386,7 +1376,7 @@
         "état résolu"
       ],
       "forbidden": [],
-      "note": "Règlement 10i."
+      "note": "Regulations: 10i."
     },
     {
       "source": [
@@ -1408,7 +1398,7 @@
         "chronomètre speedsolving"
       ],
       "forbidden": [],
-      "note": "Règlement 7f1b."
+      "note": "Regulations: 7f1b."
     },
     {
       "source": [
@@ -1430,7 +1420,7 @@
         "autocollants"
       ],
       "forbidden": [],
-      "note": "Règlement 3l2, Locales. La page boutique garde « stickers »."
+      "note": "Regulations: 3l2, Locales. La page boutique garde « stickers »."
     },
     {
       "source": [
@@ -1440,7 +1430,7 @@
         "chronomètre portatif"
       ],
       "forbidden": [],
-      "note": "Règlement 7f1c."
+      "note": "Regulations: 7f1c."
     },
     {
       "source": [
@@ -1474,7 +1464,7 @@
         "pénalités de temps"
       ],
       "forbidden": [],
-      "note": "Règlement 10e3."
+      "note": "Regulations: 10e3."
     },
     {
       "source": [
@@ -1486,7 +1476,7 @@
         "chronomètres"
       ],
       "forbidden": [],
-      "note": "Règlement"
+      "note": "Regulations"
     },
     {
       "source": [
@@ -1515,15 +1505,26 @@
     },
     {
       "source": [
-        "upload"
+        "upload",
+        "uploads",
+        "uploaded",
+        "uploading"
       ],
-      "preferred": [
-        "téléverser"
-      ],
+      "preferred": [],
       "forbidden": [
-        "télécharger"
+        "télécharger",
+        "téléchargé",
+        "téléchargée",
+        "téléchargés",
+        "téléchargées",
+        "téléchargez",
+        "téléchargeons",
+        "téléchargent",
+        "téléchargeant",
+        "téléchargement",
+        "téléchargements"
       ],
-      "note": "Locales fr-CA : « téléverser » ; « télécharger » signifie download."
+      "note": "« télécharger » signifie download. Locales fr-CA varie : « mettre en ligne », « publier », « charger », « téléverser » ; une seule occurrence de « téléchargé » à corriger. Les conjugaisons non listées ne sont pas détectées."
     },
     {
       "source": [
@@ -1536,7 +1537,7 @@
         "salle"
       ],
       "forbidden": [],
-      "note": "Locales : « Salle » dans les libellés ; Règlement : « lieu »."
+      "note": "Locales: « Salle » dans les libellés ; Regulations: « lieu »."
     },
     {
       "source": [
@@ -1724,7 +1725,7 @@
         "Dirigeants"
       ],
       "forbidden": [],
-      "note": "Locales : « Responsables » dans « Officers & Board »."
+      "note": "Locales: « Responsables » dans « Officers & Board »."
     },
     {
       "source": [
@@ -1799,7 +1800,7 @@
         "Équipe de reconnaissance en tant que Sport de la WCA"
       ],
       "forbidden": [],
-      "note": "Locales. La description dit « équipe de l'organisation sportive ». À confirmer."
+      "note": "Locales: page->teams_committees_councils->groups_name->wsot. La description dit « équipe de l'organisation sportive »."
     },
     {
       "source": [
@@ -1871,7 +1872,7 @@
         "record du monde",
         "records du monde"
       ],
-      "note": "Locales fr-CA : « Records Mondiaux »."
+      "note": "Locales fr-CA: « Records Mondiaux »."
     }
   ]
 }
