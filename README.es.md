@@ -10,7 +10,7 @@ Este README explica instalación, almacenamiento y desarrollo. La guía de uso e
 
 ## Instalación e inicio
 
-Linux y Python 3.10 o posterior:
+Linux y Python 3.12 o posterior:
 
 ```bash
 python3 -m venv .venv
@@ -119,7 +119,7 @@ RUN_BROWSER_TESTS=1 .venv/bin/python -m unittest discover -s tests -v
 
 Las pruebas usan proveedores/cuentas ficticias, JWT de prueba, localhost y carpetas temporales, sin llamadas de IA facturables. Las de navegador necesitan Chrome/Chromium y Node >=22; no descargan navegadores. GitHub Actions ejecuta pruebas Python en pushes y pull requests sin secretos. Se versionan código y pruebas, no credenciales, sesiones ni exportaciones de prueba.
 
-Las dependencias de ejecución están fijadas con hashes en `requirements.txt`; editá `requirements.in` y regenerá con el comando al comienzo del lockfile. CI cubre Python 3.10/3.12, navegador y auditorías de dependencias. Las dependencias se actualizan manualmente cuando sea necesario. Verificá esos workflows en GitHub después del push. Consultá [SECURITY.md](SECURITY.md) para reportar vulnerabilidades en privado.
+Las dependencias de ejecución están fijadas con hashes en `requirements.txt`; editá `requirements.in` y regenerá con el comando al comienzo del lockfile. CI cubre Python 3.12, navegador y auditorías de dependencias. Las dependencias se actualizan manualmente cuando sea necesario. Verificá esos workflows en GitHub después del push. Consultá [SECURITY.md](SECURITY.md) para reportar vulnerabilidades en privado.
 
 Un despliegue público requiere un punto de entrada de producción separado, origen público y callback OAuth HTTPS autorizado, autorización para aplicaciones alojadas, aislamiento de credenciales/sesiones/trabajos/archivos por usuario, almacenamiento durable y pruebas con cuentas separadas. `python run.py` no proporciona eso. Referencias: [requisitos de OpenAI para aplicaciones alojadas](https://developers.openai.com/siwc/token-sharing-open-source), [servicios web de Render](https://render.com/docs/web-services), [discos persistentes](https://render.com/docs/disks), [funciones de Vercel](https://vercel.com/docs/functions/runtimes). WCA OAuth requeriría una [aplicación registrada](https://docs.worldcubeassociation.org/knowledge_base/v0_api.html) y no sustituiría permisos de Weblate. El repositorio no publica ni despliega automáticamente.
 

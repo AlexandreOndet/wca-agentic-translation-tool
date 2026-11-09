@@ -124,6 +124,16 @@ def make_candidates(english, base, previous=None, pending_source_changes=None):
     return items
 
 
+def attach_reference(candidates, reference_po, reference_terms, terms):
+    reference_entries = Catalog(reference_po).by_key
+    for item in candidates:
+        found = reference_entries.get(item['key'])
+        values = forms(found) if found is not None and 'fuzzy' not in found.flags else []
+        if len(values) == len(item['original']) and all(v.strip() for v in values):
+            item['reference'] = values
+            item['reference_flags'] = reference_flags(item['source'][0], '\n'.join(values), reference_terms, terms)
+
+
 class Workspace:
     def __init__(self, data_dir=ROOT / 'data', client=None):
         self.data_dir = Path(data_dir).resolve()
@@ -194,7 +204,7 @@ class Workspace:
         reference = language_code(reference) if reference else None
         if reference and reference.lower() in ('en', language.lower()):
             raise ReviewError('Choose a reference language other than English and the target language.')
-        if reference and getattr(self.client, 'is_demo', False) is True:
+        if reference and not hasattr(self.client, 'download_reference'):
             raise ReviewError('Reference languages are not available in the demo.')
         if component not in ("locales", "regulations", "payload"):
             raise ReviewError('Unsupported component.')
@@ -243,13 +253,7 @@ class Workspace:
         terms = merge_terms(glossary_terms(glossary, language), configured_glossary['entries'])
         if referenced:
             reference_terms = merge_terms(glossary_terms(referenced['glossary'], reference), self.glossaries.snapshot(reference)['entries'])
-            reference_entries = Catalog(referenced['target']).by_key
-            for item in candidates:
-                found = reference_entries.get(item['key'])
-                values = forms(found) if found is not None and 'fuzzy' not in found.flags else []
-                if len(values) == len(item['original']) and all(v.strip() for v in values):
-                    item['reference'] = values
-                    item['reference_flags'] = reference_flags(item['source'][0], '\n'.join(values), reference_terms, terms)
+            attach_reference(candidates, referenced['target'], reference_terms, terms)
         now = datetime.now(timezone.utc)
         session_id = now.strftime('%Y%m%dT%H%M%SZ') + '-' + uuid.uuid4().hex[:8]
         folder = self.directory(session_id)
@@ -276,7 +280,7 @@ class Workspace:
             files['glossary.json'] = json.dumps({'version': 1, 'language': language, 'entries': terms, 'configured_revision': configured_glossary['revision'], 'configured_origin': configured_glossary['origin']}, ensure_ascii=False, indent=2) + '\n'
             for name, text in files.items():
                 atomic_write(folder / name, text)
-            manifest = {'version': 1, 'id': session_id, 'created_at': now.isoformat(), 'project': 'wca', 'component': component, 'language': language, 'language_aliases': downloaded.get('metadata', {}).get(language, {}).get('language', {}).get('aliases', []), 'demo': bool(downloaded.get('demo')), 'simulation': bool(downloaded.get('simulation')), 'candidates': len(candidates), 'reference_language': reference, 'hashes': {name: digest(text) for name, text in files.items()}, 'remote_revisions': {lang: meta.get('revision') for lang, meta in downloaded.get('metadata', {}).items()}, 'warnings': downloaded.get('warnings', [])}
+            manifest = {'version': 1, 'id': session_id, 'created_at': now.isoformat(), 'project': 'wca', 'component': component, 'language': language, 'language_aliases': downloaded.get('metadata', {}).get(language, {}).get('language', {}).get('aliases', []), 'demo': bool(downloaded.get('demo')), 'simulation': bool(downloaded.get('simulation')), 'candidates': len(candidates), 'hashes': {name: digest(text) for name, text in files.items()}, 'remote_revisions': {lang: meta.get('revision') for lang, meta in downloaded.get('metadata', {}).items()}, 'warnings': downloaded.get('warnings', [])}
             work = {'version': 1, 'session_id': session_id, 'base_sha256': digest(base.text), 'entries': candidates, 'glossary': terms, 'language': language, 'language_name': downloaded.get('metadata', {}).get(language, {}).get('language', {}).get('name', language), 'reference': {'language': reference, 'language_name': referenced['metadata'].get('language', {}).get('name', reference)} if referenced else None, 'demo': bool(downloaded.get('demo')), 'simulation': bool(downloaded.get('simulation')), 'component': component, 'output_format': {'locales': 'yml', 'payload': 'json'}.get(component, 'po')}
             for item in candidates:
                 if item['key'] in downloaded.get('simulation_reference', {}):
@@ -374,6 +378,8 @@ When finished, tell me: “Return to the interface, click Load proposals and rev
             raise ReviewError('Some entries have no reference translation. Translate them with AI or from chat instead.')
         if (folder / 'proposals.json').exists():
             raise ReviewError('proposals.json already exists in this session. Load it, or create another session.')
+        if (folder / 'generation.json').exists() and read_json(folder / 'generation.json').get('entries'):
+            raise ReviewError('AI translation already started in this session. Continue it, or create another session.')
         name = self.work['reference']['language']
         entries = [{'key': item['key'], 'target': item['reference'], 'note': f'Copied from {name}.' + (' Change: ' + '; '.join(f"{f['term']} → {' / '.join(f['replacement'])}" for f in item['reference_flags']) if item.get('reference_flags') else '')} for item in self.work['entries']]
         write_json(folder / 'proposals.json', {'version': 1, 'session_id': self.active_id, 'base_sha256': self.work['base_sha256'], 'entries': entries})
@@ -408,5 +414,5 @@ When finished, tell me: “Return to the interface, click Load proposals and rev
             entry.update({'note': notes.get(entry['key'], ''), 'reasons': item.get('reasons', []), 'previous_source': item.get('previous_source'), 'previous_translation': item.get('previous_translation'), 'plural_forms': item.get('plural_forms', []), 'simulation_reference': item.get('simulation_reference'), 'reference': item.get('reference'), 'reference_flags': item.get('reference_flags', [])})
         generation_path = self.directory(self.active_id) / 'generation.json' if self.active_id else None
         ai_completed = len(read_json(generation_path).get('entries', {})) if generation_path and generation_path.exists() else 0
-        state['workspace'] = {'created_at': self.manifest.get('created_at') if self.manifest else None, 'language': self.manifest.get('language', 'es_419') if self.manifest else 'es_419', 'language_name': self.work.get('language_name', 'es_419') if self.work else 'Latin American Spanish', 'component': self.manifest.get('component', 'regulations') if self.manifest else None, 'output_format': {'locales': 'yml', 'payload': 'json'}.get(self.manifest.get('component') if self.manifest else None, 'po'), 'active_id': self.active_id, 'revision': self.generation, 'sessions': sessions, 'simulation': bool(getattr(self.client, 'is_simulation', False) is True or (self.manifest and self.manifest.get('simulation'))), 'ai_completed': ai_completed, 'glossary_count': len(self.work.get('glossary', [])) if self.work else 0, 'reference': self.work.get('reference') if self.work else None, 'candidate_count': len(work_entries), 'ready': ready, 'demo': bool(getattr(self.client, 'is_demo', False) is True or (self.manifest and self.manifest.get('demo'))), 'token_configured': False if getattr(self.client, 'is_demo', False) is True else bool(self.client.token()) if isinstance(self.client, Client) else bool(load_token(self.client.env_path)), 'warnings': self.manifest.get('warnings', []) if self.manifest else [], 'prompt': self.prompt_text(self.directory(self.active_id), self.work) if self.active_id else '', 'folder': str(self.directory(self.active_id)) if self.active_id else None}
+        state['workspace'] = {'created_at': self.manifest.get('created_at') if self.manifest else None, 'language': self.manifest.get('language', 'es_419') if self.manifest else 'es_419', 'language_name': self.work.get('language_name', 'es_419') if self.work else 'Latin American Spanish', 'component': self.manifest.get('component', 'regulations') if self.manifest else None, 'output_format': {'locales': 'yml', 'payload': 'json'}.get(self.manifest.get('component') if self.manifest else None, 'po'), 'active_id': self.active_id, 'revision': self.generation, 'sessions': sessions, 'simulation': bool(getattr(self.client, 'is_simulation', False) is True or (self.manifest and self.manifest.get('simulation'))), 'ai_completed': ai_completed, 'glossary_count': len(self.work.get('glossary', [])) if self.work else 0, 'reference': self.work.get('reference') if self.work else None, 'candidate_count': len(work_entries), 'reference_count': sum(1 for item in work_entries.values() if item.get('reference')), 'ready': ready, 'demo': bool(getattr(self.client, 'is_demo', False) is True or (self.manifest and self.manifest.get('demo'))), 'token_configured': False if getattr(self.client, 'is_demo', False) is True else bool(self.client.token()) if isinstance(self.client, Client) else bool(load_token(self.client.env_path)), 'warnings': self.manifest.get('warnings', []) if self.manifest else [], 'prompt': self.prompt_text(self.directory(self.active_id), self.work) if self.active_id else '', 'folder': str(self.directory(self.active_id)) if self.active_id else None}
         return state

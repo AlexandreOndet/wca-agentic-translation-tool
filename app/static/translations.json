@@ -570,5 +570,6 @@
   "Choose a reference language other than English and the target language.": "Elegí un idioma de referencia distinto del inglés y del idioma de destino.",
   "Some entries have no reference translation. Translate them with AI or from chat instead.": "Algunas entradas no tienen traducción de referencia. Traducilas con IA o desde el chat.",
   "proposals.json already exists in this session. Load it, or create another session.": "proposals.json ya existe en esta sesión. Cargalo o creá otra sesión.",
+  "AI translation already started in this session. Continue it, or create another session.": "La traducción con IA ya empezó en esta sesión. Continuala o creá otra sesión.",
   "Use {0}": "Usar {0}"
 }

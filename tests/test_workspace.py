@@ -265,6 +265,7 @@ class WorkspaceTests(unittest.TestCase):
         self.assertEqual(item['reference'],['Bonjour %s'])
         self.assertEqual(item['reference_flags'],[{'term':'Bonjour','replacement':['Hola'],'source':['Hello']}])
         self.assertEqual(state['workspace']['reference'],{'language':'fr','language_name':'French'})
+        self.assertEqual(state['workspace']['reference_count'],1)
         self.assertIn('reference_flags',state['workspace']['prompt'])
         self.assertTrue((self.workspace.directory(self.workspace.active_id)/'reference.po').exists())
         state=self.workspace.reference_proposals()
@@ -273,9 +274,17 @@ class WorkspaceTests(unittest.TestCase):
         self.assertEqual(entry['decision']['status'],'pending')
         with self.assertRaises(ReviewError):self.workspace.reference_proposals()
 
+    def test_reference_proposals_keep_started_ai_translation(self):
+        self.reference_sync(fixture('Bonjour %s').replace('#, fuzzy\n',''))
+        folder=self.workspace.directory(self.workspace.active_id)
+        write_json(folder/'generation.json',{'entries':{'k':['Hola']}})
+        with self.assertRaisesRegex(ReviewError,'AI translation already started'):self.workspace.reference_proposals()
+        self.assertFalse((folder/'proposals.json').exists())
+
     def test_fuzzy_reference_is_not_used(self):
-        self.reference_sync(fixture('Bonjour %s'))
+        state=self.reference_sync(fixture('Bonjour %s'))
         self.assertNotIn('reference',self.workspace.work['entries'][0])
+        self.assertEqual(state['workspace']['reference_count'],0)
         with self.assertRaises(ReviewError):self.workspace.reference_proposals()
 
     def test_without_reference_the_session_is_unchanged(self):
@@ -290,11 +299,11 @@ class WorkspaceTests(unittest.TestCase):
             with self.assertRaises(ReviewError):self.workspace.sync(reference=code)
         self.client.download.assert_not_called()
 
-    def test_download_reference_restores_target_and_skips_simulation_gaps(self):
+    def test_download_reference_fetches_reference_language(self):
         client=Client(env_path=self.root/'.env');client.language='fr_ca'
         seen=[]
-        with patch.object(Client,'_download_once',lambda c:seen.append(c.language) or {'target':'po','glossary':None,'metadata':{'fr':{'revision':'r'}}}):
-            self.assertEqual(client.download_reference('fr')['target'],'po')
+        with patch.object(Client,'_download_once',lambda c,lang:seen.append(lang) or {'target':'po','glossary':None,'metadata':{'fr':{'revision':'r'}}}):
+            self.assertEqual(client.download_reference('fr'),{'target':'po','glossary':None,'metadata':{'revision':'r'}})
         self.assertEqual((seen,client.language),(['fr'],'fr_ca'))
 
     def test_modified_snapshot_rejected(self):

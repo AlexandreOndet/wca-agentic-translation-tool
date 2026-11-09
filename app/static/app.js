@@ -30,7 +30,7 @@ async function readSync(response) {
   const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='',result,streamError,recovery;
   function event(line) {if(!line.trim())return;const value=JSON.parse(line);if(value.error){streamError=value.error;recovery=value.recovery;}else if(value.result)result=value.result;else if(value.stage!==undefined)syncStage(value);}
   for(;;) {const {value,done}=await reader.read();buffer+=decoder.decode(value||new Uint8Array(),{stream:!done});let end;while((end=buffer.indexOf('\n'))>=0){event(buffer.slice(0,end));buffer=buffer.slice(end+1);}if(done)break;}
-  if(buffer.trim())event(buffer);if(streamError){if(recovery){state=recovery;selected=resumeKey();editing=!!current()?.decision.draft;render();}throw new Error(streamError);}if(!result)throw new Error(t("The connection closed before synchronization completed. Reload to check whether the session was saved."));return result;
+  if(buffer.trim())event(buffer);if(streamError){if(recovery){state=recovery;resume();}throw new Error(streamError);}if(!result)throw new Error(t("The connection closed before synchronization completed. Reload to check whether the session was saved."));return result;
 }
 
 function error(message) { lastError=message; $('error').textContent = t(message); $('error').hidden = false; }
@@ -43,11 +43,14 @@ async function api(path, data, requestState = state) {
   return result;
 }
 function current() { return state.entries.find(e => e.key === selected); }
+function stored(key) {try{return localStorage.getItem(key);}catch{return null;}}
+function store(key,value) {try{localStorage.setItem(key,value);}catch{}}
 function positionKey() { return 'wca-position:'+(state.workspace?.active_id || 'review'); }
 function resumeKey() {
-  let saved=null; try{saved=localStorage.getItem(positionKey());}catch{}
+  const saved=stored(positionKey());
   return (state.entries.find(e=>e.key===saved) || state.entries.find(e=>e.decision.status==='pending') || state.entries[0])?.key;
 }
+function resume() {selected=resumeKey();editing=!!current()?.decision.draft;render();}
 function visible() {
   const filter = $('filter').value, search = $('search').value.toLocaleLowerCase();
   return state.entries.filter(e => (filter === 'all' || (filter === 'conflict' ? e.conflict : e.decision.status === filter)) && (!search || [e.context,...e.source,...e.original,...e.proposed,...(e.decision.values || []),...(e.decision.draft || [])].join('\n').toLocaleLowerCase().includes(search)));
@@ -69,7 +72,7 @@ function showWorkspace() {
   $('open-session').disabled=!w.sessions.length;
   $('copy-prompt').disabled=!w.active_id || !w.candidate_count;
   $('load-proposals').disabled=!w.active_id || !w.candidate_count;
-  $('reference-proposals').hidden=!w.reference || !w.candidate_count || w.ready;
+  $('reference-proposals').hidden=!w.reference || !w.candidate_count || w.reference_count!==w.candidate_count || w.ai_completed || w.ready;
   $('reference-proposals').textContent=t("Use {0} as proposals", w.reference?.language_name || '');
   $('export').disabled=!w.active_id || (!!w.candidate_count && !w.ready);
   $('agent-prompt').value=w.prompt;
@@ -104,7 +107,7 @@ function showProgress() {
 }
 let lastPending=null;
 function downloadedKey() {return 'wca-downloaded:'+(state.workspace?.active_id || 'review');}
-function downloadedRevision() {try{return localStorage.getItem(downloadedKey());}catch{return null;}}
+function downloadedRevision() {return stored(downloadedKey());}
 // Leads from the last decision to download, then to the manual Weblate upload.
 function showNextStep() {
   const w=state.workspace, c=state.counts, box=$('next-step');
@@ -179,7 +182,7 @@ function editorValues() { return [...document.querySelectorAll('.edit-form')].ma
 function renderEntry() {
   const e=current(); $('review').hidden = !e;
   if (!e) return;
-  try{localStorage.setItem(positionKey(),e.key);}catch{}
+  store(positionKey(),e.key);
   $('position').textContent = t("CHANGE {0} OF {1}", state.entries.indexOf(e)+1, state.entries.length);
   $('context').textContent = e.context || t("No context"); $('status').textContent = t(labels[e.decision.status]) + (e.conflict ? t(" · Conflict") : '');
   $('source').replaceChildren();
@@ -408,13 +411,14 @@ async function act(fn) { try { await fn(); } catch(exc) { $('save').textContent=
 $('accept').onclick=()=>act(()=>decide('accepted'));
 $('reject').onclick=()=>act(()=>decide('rejected'));
 $('pending').onclick=()=>act(()=>decide('pending'));
+async function startEditing() {await flush();editing=true;renderEntry();document.querySelector('.edit-form')?.focus();}
 async function useReference() {
   await flush(); const e=current(); if(!e?.reference)return;
   await mutate('/api/decision',{key:e.key,decision:{status:'pending',draft:[...e.reference]}});
-  editing=true; renderEntry(); document.querySelector('.edit-form')?.focus();
+  await startEditing();
 }
 $('use-reference').onclick=()=>act(useReference);
-$('edit').onclick=()=>act(async()=>{await flush();editing=true;renderEntry();document.querySelector('.edit-form')?.focus();});
+$('edit').onclick=()=>act(startEditing);
 $('prev').onclick=()=>act(()=>navigate(-1)); $('next').onclick=()=>act(()=>navigate(1));
 for(const id of ['search','filter']) $(id).addEventListener(id==='search'?'input':'change',()=>act(async()=>{await flush();render();}));
 async function workspaceAction(path, data={}) {
@@ -426,7 +430,7 @@ async function workspaceAction(path, data={}) {
   const buttons=['language','reference','model','manual-mode','generate','reference-proposals','component','sync','open-session','copy-prompt','load-proposals','export'];
   buttons.forEach(id=>$(id).disabled=true);
   $('workspace-detail').textContent=path==='/api/sync' ? t("Downloading the current bases from Weblate…") : t("Loading the session…");
-  try {state=await api(path,data);syncFailed=false;if(state.workspace.component)$('component').value=state.workspace.component;setLanguage(state.workspace.language,state.workspace.language_name);selected=resumeKey();editing=!!current()?.decision.draft;render();}
+  try {state=await api(path,data);syncFailed=false;if(state.workspace.component)$('component').value=state.workspace.component;setLanguage(state.workspace.language,state.workspace.language_name);resume();}
   catch(exc) {if(isSync){syncFailed=true;$('sync-indicator').classList.add('failed');syncStage({stage:lastSyncEvent?.stage || 0,total:lastSyncEvent?.total || 7,message:exc.message});}throw exc;}
   finally {if(isSync){clearInterval(syncTimer);syncing=false;}buttons.forEach(id=>$(id).disabled=false);showWorkspace();if(path==='/api/sync'){ensureLanguages(true);ensureProjectStatus(true);}}
 }
@@ -473,16 +477,17 @@ document.addEventListener('keydown',event=>{
   // remain active there; suspend them while typing or selecting values.
   if(event.ctrlKey||event.altKey||event.metaKey||event.shiftKey||['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)||event.target.isContentEditable)return;
   const key=event.key.toLowerCase();
-  const actions={arrowleft:()=>navigate(-1),arrowright:()=>navigate(1),a:()=>decide('accepted'),r:()=>decide('rejected'),u:useReference,e:async()=>{await flush();editing=true;renderEntry();document.querySelector('.edit-form')?.focus();}};
+  const actions={arrowleft:()=>navigate(-1),arrowright:()=>navigate(1),a:()=>decide('accepted'),r:()=>decide('rejected'),u:useReference,e:startEditing};
   if(actions[key]){event.preventDefault();act(actions[key]);}
 });
 window.addEventListener('beforeunload',event=>{if(dirty||saving||exportDrafts.size){event.preventDefault();event.returnValue='';}});
-act(async()=>{await uiReady;state=await api('/api/state');selected=resumeKey();editing=!!current()?.decision.draft;render();await refreshConnections();if(state.workspace){await ensureLanguages();ensureProjectStatus();}});
+act(async()=>{await uiReady;state=await api('/api/state');resume();await refreshConnections();if(state.workspace){await ensureLanguages();ensureProjectStatus();}});
 
 function setLanguage(code,name) {
   if(!code)return;
   if(![...$('language').options].some(option=>option.value===code)) {const option=textNode('option',`${languageName(code,name)} · ${code}`);option.value=code;$('language').append(option);}
   $('language').value=code;
+  fillReference();
 }
 function activeAccount() {return connectionState?.chatgpt.accounts.find(item=>item.id===connectionState.chatgpt.active);}
 function provider() {return $('manual-mode').checked?'manual':state?.workspace?.demo?'demo':$('ai-provider').value;}
@@ -533,19 +538,20 @@ async function ensureLanguages(force=false) {
     catch(exc){if($('component').value===component)$('language').replaceChildren(new Option(t("Could not load languages · retry"),previous));throw exc;}
     languageCache.set(component,result.items);
     if($('component').value!==component)return;
-    const code=$('language').value;
-    $('language').replaceChildren(...result.items.map(item=>new Option(t("{0} · {1} · {2} pending", languageName(item.code,item.name), item.code, Math.max(0,item.total-item.translated)),item.code)));
-    if(result.items.some(item=>item.code===code))$('language').value=code;
-    fillReference();
+    fillLanguages(result.items);
   });
+}
+function fillLanguages(items) {
+  const previous=$('language').value;
+  $('language').replaceChildren(...items.map(item=>new Option(t("{0} · {1} · {2} pending", languageName(item.code,item.name), item.code, Math.max(0,item.total-item.translated)),item.code)));
+  if(items.some(item=>item.code===previous))$('language').value=previous;
+  fillReference();
 }
 // Derived locales that default to a reference; an explicit choice (even None) overrides it.
 const DEFAULT_REFERENCE={fr_ca:'fr'};
 function fillReference() {
   const target=$('language').value;
-  let remembered=null;
-  try{remembered=localStorage.getItem('wca-reference:'+target);}catch{}
-  remembered??=DEFAULT_REFERENCE[target.replace('-','_').toLowerCase()] || '';
+  const remembered=stored('wca-reference:'+target) ?? (DEFAULT_REFERENCE[target.replace('-','_').toLowerCase()] || '');
   const items=(languageCache.get($('component').value) || []).filter(item=>item.code!==target);
   $('reference').replaceChildren(new Option(t("None · translate from English"),''),...items.map(item=>new Option(`${languageName(item.code,item.name)} · ${item.code}`,item.code)));
   $('reference').value=items.some(item=>item.code===remembered)?remembered:'';
@@ -559,7 +565,7 @@ async function ensureProjectStatus(force=false) {
     if($('language').value===language){projectStatus=result.status;showWorkspaceWarnings();}
   });
 }
-function rememberedModel() {try{return localStorage.getItem('wca-model') || '';}catch{return '';}}
+function rememberedModel() {return stored('wca-model') || '';}
 async function ensureModels() {
   const name=provider(), key=name==='claude-code'?name:activeAccount()?.id;
   if(!state?.workspace || !canTranslate() || syncing || name==='manual' || state.workspace.demo)return;
@@ -579,17 +585,17 @@ async function ensureModels() {
 }
 $('language').onfocus=()=>{ensureLanguages();};
 $('language').onchange=()=>{fillReference();showWorkspaceWarnings();ensureProjectStatus();};
-$('reference').onchange=()=>{try{localStorage.setItem('wca-reference:'+$('language').value,$('reference').value);}catch{}};
+$('reference').onchange=()=>store('wca-reference:'+$('language').value,$('reference').value);
 $('model').onfocus=()=>{ensureModels();};
-$('model').onchange=()=>{try{localStorage.setItem('wca-model',$('model').value);}catch{}};
-try{if(localStorage.getItem('wca-provider')==='claude-code')$('ai-provider').value='claude-code';}catch{}
+$('model').onchange=()=>store('wca-model',$('model').value);
+if(stored('wca-provider')==='claude-code')$('ai-provider').value='claude-code';
 $('ai-provider').onchange=()=>act(async()=>{
-  try{localStorage.setItem('wca-provider',$('ai-provider').value);}catch{}
+  store('wca-provider',$('ai-provider').value);
   $('model').replaceChildren(new Option(connectLabel(),''));showAIOptions();await ensureModels();
 });
 $('component').onchange=()=>act(async()=>{
   const items=languageCache.get($('component').value);
-  if(items){const previous=$('language').value;$('language').replaceChildren(...items.map(item=>new Option(t("{0} · {1} · {2} pending", languageName(item.code,item.name), item.code, Math.max(0,item.total-item.translated)),item.code)));if(items.some(item=>item.code===previous))$('language').value=previous;fillReference();}
+  if(items)fillLanguages(items);
   else await ensureLanguages();
   await flush();ensureProjectStatus();catalogStatus();
 });
@@ -726,7 +732,7 @@ $('download').onclick=()=>act(async()=>{
     const result=await api('/api/export',{revision:state.revision,mode:'changes',confirm_pending:$('confirm-pending').checked,confirm_warnings:$('confirm-warnings').checked});
     if(!result.ok){exportReport={...exportReport,...result};validation(exportReport);return;}
     download(result);$('export-dialog').close();exportExpanded.clear();
-    try{localStorage.setItem(downloadedKey(),String(state.revision));}catch{}
+    store(downloadedKey(),String(state.revision));
     showNextStep();if(!$('next-weblate').hidden)$('next-weblate').focus();
   } finally {exportBusy=false;updateDownload();}
 });
@@ -739,7 +745,7 @@ async function changeUILanguage(code) {
   await flush();
   uiLanguage=code;
   if(typeof renderGlossary==='function')renderGlossary();
-  try { localStorage.setItem('wca-ui-language',code); } catch {}
+  store('wca-ui-language',code);
   applyStaticLanguage();
   if (state) render();
   if (connectionState) showConnections();

@@ -10,7 +10,7 @@ Abrí una terminal en la carpeta del proyecto y ejecutá:
 .venv/bin/python run.py
 ```
 
-Este setup admite Linux y Python 3.10 o posterior. Windows y macOS no están validados. Si es la primera vez, prepará el entorno e iniciá el servidor con:
+Este setup admite Linux y Python 3.12 o posterior. Windows y macOS no están validados. Si es la primera vez, prepará el entorno e iniciá el servidor con:
 
 ```bash
 python3 -m venv .venv

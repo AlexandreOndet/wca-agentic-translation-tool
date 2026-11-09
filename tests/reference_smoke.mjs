@@ -39,11 +39,11 @@ try {
  await wait('!dirty && saving===0');
  await click('accept');await wait("state.counts.edited===1 && saving===0");
  assert(await evaluate("[...document.querySelectorAll('.comparison .removed')].map(s=>s.textContent).join('').includes('Petit')"),'Diff against the reference shows removed words');
- await send('Page.reload');
- await wait("typeof state!=='undefined' && state && !catalogBusy() && document.getElementById('language').value==='fr_ca' && document.getElementById('reference').options.length>1");
+ await evaluate("window.beforeReload=true");await send('Page.reload');
+ await wait("!window.beforeReload && typeof state!=='undefined' && state && !catalogBusy() && document.getElementById('language').value==='fr_ca' && document.getElementById('reference').options.length>1");
  assert(await evaluate("document.getElementById('reference').value==='fr'"),'Reference restored after reload');
  assert(await evaluate("current()?.context==='meal' && state.entries[0].context!=='meal'"),'Reload resumes at the last entry, not the first');
- assert(await pick('language','es_419')==='es_419' && await evaluate("document.getElementById('reference').value===''"),'Other targets keep the English default');
+ assert(await evaluate("setLanguage('es_419');document.getElementById('reference').value===''"),'Programmatic target change refreshes the reference');
  assert(errors.length===0,'Browser errors: '+errors.join('; '));
  console.log('OK reference: opt-in fr → fr-CA, flagged glossary terms, reference proposals, diff, edit and remembered choice.');
 } finally {await fetch(`${debug}/json/close/${tab.id}`);ws.close();}
