@@ -40,6 +40,8 @@ Credentials are stored separately in `data/auth/chatgpt.json` with `0600` permis
 
 Reconnecting uses the saved account registration. To sign in with another account after disconnecting, open **More options** in the ChatGPT connection card and select **Use another ChatGPT account on the next sign-in**.
 
+Claude Code is an alternative provider. Choose **Claude Code · local** under **AI**. The server runs the user's own installed, unmodified `claude` CLI in print mode (`claude -p`) with no tools, MCP servers, settings or session persistence, in an empty temporary directory, and reads its structured output. Sign-in stays with Claude Code (`claude auth login`); the application never reads or stores Claude credentials. Usage counts against the signed-in account's plan or API key. Models are the `opus`, `sonnet` and `haiku` aliases.
+
 ## Data and translation behavior
 
 Sessions are isolated by component, language and real/demo/simulation mode. They live in `data/sessions/<UTC-date>-<id>/`, with immutable references and hashes, native-format mappings, optional `glossary.tbx`, `work.json`, `PROMPT.txt`, generation progress and proposals. Review data and exports live in each session’s `review/` directory. Internal filenames `decisiones.json` and `resumen_exportacion.json` remain unchanged for compatibility. Protect authentication files when backing up `data/`.

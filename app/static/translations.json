@@ -538,5 +538,19 @@
   "The glossary exceeds the 2 MB limit.": "El glosario supera el límite de 2 MB.",
   "The glossary must be valid UTF-8 JSON.": "El glosario debe ser JSON válido en UTF-8.",
   "The glossary changed. Reopen it before saving your changes.": "El glosario cambió. Volvé a abrirlo antes de guardar tus cambios.",
-  "Session glossary: {0} terms.": "Glosario de la sesión: {0} términos."
+  "Session glossary: {0} terms.": "Glosario de la sesión: {0} términos.",
+  "AI": "IA",
+  "Claude Code · local": "Claude Code · local",
+  "Not checked": "Sin verificar",
+  "Uses your own Claude Code sign-in on this computer. To connect, run claude auth login in a terminal, then reopen Connections.": "Usa tu propia sesión de Claude Code en esta computadora. Para conectarte, ejecutá claude auth login en una terminal y volvé a abrir Conexiones.",
+  "Sign in to Claude Code": "Iniciá sesión en Claude Code",
+  "Not installed": "No instalado",
+  "✓ Signed in · {0}": "✓ Sesión iniciada · {0}",
+  "Installed · not signed in": "Instalado · sin sesión iniciada",
+  "Choose a Claude model.": "Elegí un modelo de Claude.",
+  "Claude Code was not found. Install Claude Code and sign in with: claude auth login": "No se encontró Claude Code. Instalalo e iniciá sesión con: claude auth login",
+  "Could not start Claude Code. Install Claude Code and sign in with: claude auth login": "No se pudo iniciar Claude Code. Instalalo e iniciá sesión con: claude auth login",
+  "Claude Code did not return valid JSON. Install Claude Code and sign in with: claude auth login": "Claude Code no devolvió JSON válido. Instalalo e iniciá sesión con: claude auth login",
+  "Claude Code did not answer in time. Validated batches can be resumed.": "Claude Code no respondió a tiempo. Los lotes validados se pueden retomar.",
+  "Claude Code request failed: {0}. No translations were approved.": "Falló la solicitud a Claude Code: {0}. No se aprobó ninguna traducción."
 }
