@@ -28,7 +28,10 @@ try {
  assert(await evaluate("document.getElementById('metadata').textContent.includes('Petit-déjeuner → Déjeuner')"),'Flags listed in details');
  assert(await evaluate("current().proposed[0]==='Petit-déjeuner à %s' && current().note.includes('Petit-déjeuner → Déjeuner') && state.counts.pending===2"),'Reference copied as pending proposals');
  assert(await evaluate("document.querySelector('.comparison h3').textContent==='Reference · fr'"),'Empty original is compared with the reference');
- await click('edit');await wait("document.querySelectorAll('.edit-form').length===1");
+ assert(await evaluate("!document.getElementById('use-reference').hidden && document.getElementById('use-reference').textContent==='Use French U'"),'Use reference button shown');
+ await evaluate("current().proposed=['Unwanted AI text'];true");
+ await click('use-reference');await wait("editing && document.querySelector('.edit-form')?.value==='Petit-déjeuner à %s' && saving===0");
+ assert(await evaluate("current().decision.status==='pending' && current().decision.draft[0]==='Petit-déjeuner à %s'"),'Reference becomes a pending draft, not an approval');
  await evaluate("const f=document.querySelector('.edit-form');f.value='Déjeuner à %s';f.dispatchEvent(new Event('input',{bubbles:true}));true");
  await wait('!dirty && saving===0');
  await click('accept');await wait("state.counts.edited===1 && saving===0");

@@ -179,6 +179,8 @@ function renderEntry() {
   $('source').replaceChildren();
   e.source.forEach((value,i) => { if (e.source.length>1) $('source').append(textNode('div',i===0?t("Singular"):t("Plural"),'plural-label')); $('source').append(textNode('div',value,'text')); });
   $('reference-panel').hidden = !e.reference;
+  $('use-reference').hidden = !e.reference;
+  $('use-reference').replaceChildren(t("Use {0}", state.workspace?.reference?.language_name || '') + ' ', textNode('kbd','U'));
   if (e.reference) {
     $('reference-title').textContent = t("Reference · {0}", state.workspace.reference?.language || '');
     $('reference-text').replaceChildren(...e.reference.map((value,i) => flagText(value, e.reference_flags, e.plural_forms?.[i])));
@@ -400,6 +402,12 @@ async function act(fn) { try { await fn(); } catch(exc) { $('save').textContent=
 $('accept').onclick=()=>act(()=>decide('accepted'));
 $('reject').onclick=()=>act(()=>decide('rejected'));
 $('pending').onclick=()=>act(()=>decide('pending'));
+async function useReference() {
+  await flush(); const e=current(); if(!e?.reference)return;
+  await mutate('/api/decision',{key:e.key,decision:{status:'pending',draft:[...e.reference]}});
+  editing=true; renderEntry(); document.querySelector('.edit-form')?.focus();
+}
+$('use-reference').onclick=()=>act(useReference);
 $('edit').onclick=()=>act(async()=>{await flush();editing=true;renderEntry();document.querySelector('.edit-form')?.focus();});
 $('prev').onclick=()=>act(()=>navigate(-1)); $('next').onclick=()=>act(()=>navigate(1));
 for(const id of ['search','filter']) $(id).addEventListener(id==='search'?'input':'change',()=>act(async()=>{await flush();render();}));
@@ -459,7 +467,7 @@ document.addEventListener('keydown',event=>{
   // remain active there; suspend them while typing or selecting values.
   if(event.ctrlKey||event.altKey||event.metaKey||event.shiftKey||['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)||event.target.isContentEditable)return;
   const key=event.key.toLowerCase();
-  const actions={arrowleft:()=>navigate(-1),arrowright:()=>navigate(1),a:()=>decide('accepted'),r:()=>decide('rejected'),e:async()=>{await flush();editing=true;renderEntry();document.querySelector('.edit-form')?.focus();}};
+  const actions={arrowleft:()=>navigate(-1),arrowright:()=>navigate(1),a:()=>decide('accepted'),r:()=>decide('rejected'),u:useReference,e:async()=>{await flush();editing=true;renderEntry();document.querySelector('.edit-form')?.focus();}};
   if(actions[key]){event.preventDefault();act(actions[key]);}
 });
 window.addEventListener('beforeunload',event=>{if(dirty||saving||exportDrafts.size){event.preventDefault();event.returnValue='';}});
