@@ -30,12 +30,12 @@ try{
  assert(await evaluate("document.getElementById('next-step').hidden"),'Next step stays hidden while entries are pending');
  await click('accept');await wait('state.counts.accepted===2 && saving===0');
  await wait("!document.getElementById('next-step').hidden && document.activeElement?.id==='next-download'");
- assert(await evaluate("document.getElementById('next-weblate').hidden"),'Weblate link waits for the download');
+ assert(await evaluate("state.workspace.weblate_url===null && document.getElementById('next-weblate').hidden"),'Demo never links to Weblate');
+ assert(await evaluate("document.getElementById('next-step-text').textContent===t('All {0} entries reviewed. Next step: download the test file. Do not upload it to Weblate.',3)"),'Demo pre-download step does not ask to upload');
  await click('next-download');await wait("document.getElementById('export-dialog').open && !document.getElementById('download').disabled");
  await evaluate("document.getElementById('confirm-warnings').checked=true");
  await click('download');await wait("!document.getElementById('export-dialog').open");
- assert(await evaluate("document.getElementById('next-step-text').textContent.includes('DEMO_') && document.getElementById('next-weblate').hidden"),'Test downloads never point to Weblate');
- assert(await evaluate("state.workspace.demo=false;showNextStep();const a=document.getElementById('next-weblate');const ok=!a.hidden && a.href.endsWith('/projects/wca/'+state.workspace.component+'/'+state.workspace.language+'/');state.workspace.demo=true;showNextStep();ok"),'Real downloads link to the Weblate translation page');
+ assert(await evaluate("document.getElementById('next-step-text').textContent.includes('DEMO_') && document.getElementById('next-weblate').hidden && document.getElementById('next-download').textContent===t('Download again')"),'Test downloads never point to Weblate');
  const result=await evaluate("api('/api/export',{revision:state.revision})");
  assert(result.ok && result.filename.startsWith('DEMO_') && result.content.includes('Hola, %{name}') && result.content.includes('Ya traducido'),'Demo exports approved changes with a marker');
  const suggestions=await evaluate("api('/api/export',{revision:state.revision,mode:'suggestions'})");

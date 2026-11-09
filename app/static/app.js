@@ -52,7 +52,7 @@ function showWorkspace() {
   const w=state.workspace;
   $('workspace-panel').hidden=!w;
   if(!w)return;
-  $('demo-banner').hidden=!(w.demo || w.simulation);$('demo-banner').textContent=w.simulation?t("SIMULATION · copy of a real download with artificial gaps · do not upload exports"):t("DEMO · fictional data · no Weblate connection · do not upload these files");
+  $('demo-banner').hidden=!testSession();$('demo-banner').textContent=w.simulation?t("SIMULATION · copy of a real download with artificial gaps · do not upload exports"):t("DEMO · fictional data · no Weblate connection · do not upload these files");
   if(!$('component').dataset.initialized) {$('component').value=w.component || 'locales';setLanguage(w.language || 'es_419',w.language_name);$('component').dataset.initialized='true';}
   $('export').textContent=t("Download translation ↗");
   $('workspace-status').textContent=syncFailed ? t("Synchronization did not complete. The last session has been preserved.") : !w.active_id ? t("Prepare your first synchronization.") : !w.candidate_count ? t("No pending entries in {0} / {1} in this session.", w.component, w.language) : w.ready ? t("{0} proposals ready for review.", w.candidate_count) : t("{0} entries awaiting translation.", w.candidate_count);
@@ -95,33 +95,40 @@ function showProgress() {
   $('remove-recent').hidden = !state.recent;
   showNextStep();
 }
-let lastPending=null;
-function downloadedKey() {return 'wca-downloaded:'+(state.workspace?.active_id || 'review');}
+const UPLOAD_HOW="Import it into Weblate with “Add as translation” or, for Locales, “Add as suggestion”. Merge translations instead of replacing the file.";
+function testSession() {return !!(state.workspace?.demo || state.workspace?.simulation);}
+function downloadedKey() {return 'wca-downloaded:'+state.workspace.active_id;}
 function downloadedRevision() {try{return localStorage.getItem(downloadedKey());}catch{return null;}}
+function nextStep() {
+  const w=state.workspace, c=state.counts;
+  if(!w?.active_id || !state.entries.length || c.pending)return null;
+  const downloaded=downloadedRevision()===String(state.revision);
+  return !(c.accepted+c.edited)?'empty':testSession()?(downloaded?'test-done':'test'):downloaded?'upload':'download';
+}
 // Leads from the last decision to download, then to the manual Weblate upload.
 function showNextStep() {
-  const w=state.workspace, c=state.counts, box=$('next-step');
-  const finished=state.entries.length>0 && !c.pending;
-  const justFinished=finished && lastPending>0;
-  lastPending=c.pending;
-  box.hidden=!finished;
-  if(!finished)return;
-  const changes=c.accepted+c.edited, test=w?.demo || w?.simulation;
-  const downloaded=downloadedRevision()===String(state.revision);
-  const link=$('next-weblate'), button=$('next-download');
-  link.hidden=!changes || !downloaded || test || !w?.component;
-  button.hidden=!changes;
-  button.classList.toggle('primary',!downloaded);
-  button.textContent=downloaded?t("Download again"):t("Download translation ↗");
-  if(!link.hidden){
-    link.href=`https://translate.worldcubeassociation.org/projects/wca/${encodeURIComponent(w.component)}/${encodeURIComponent(w.language)}/`;
-    link.textContent=t("Open {0} in Weblate ↗",languageName(w.language,w.language_name));
-  }
-  $('next-step-text').textContent=!changes?t("All entries reviewed. Nothing to upload: no entry was accepted or edited.")
-    :!downloaded?t("All {0} entries reviewed. Next step: download the file, then upload it in Weblate.",state.entries.length)
-    :test?t("Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate.")
-    :t("File downloaded, but Weblate does not have it yet. Last step: open Weblate, then Files → Upload translation, pick the file and choose Add as translation (never Replace). Afterwards, Sync & Translate here should show nothing pending.");
-  if(justFinished){box.scrollIntoView({block:'nearest'});button.focus();}
+  const step=nextStep(), box=$('next-step'), button=$('next-download'), link=$('next-weblate'), w=state.workspace;
+  box.hidden=!step;
+  if(!step)return;
+  const n=state.entries.length;
+  $('next-step-text').textContent={
+    empty:t("All entries reviewed. Nothing to upload: no entry was accepted or edited."),
+    test:t("All {0} entries reviewed. Next step: download the test file. Do not upload it to Weblate.",n),
+    'test-done':t("Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate."),
+    download:t("All {0} entries reviewed. Next step: download the file, then upload it in Weblate.",n),
+    upload:[t("File downloaded, but Weblate does not have it yet. Last step: open Weblate, go to Files → Upload translation and pick the file."),t(UPLOAD_HOW),t("Afterwards, Sync & Translate here should no longer show the entries you accepted or edited.")].join(' '),
+  }[step];
+  button.hidden=step==='empty';
+  button.textContent=step==='test' || step==='download'?t("Download translation ↗"):t("Download again");
+  button.classList.toggle('primary',step==='test' || step==='download');
+  link.hidden=step!=='upload' || !w.weblate_url;
+  link.href=w.weblate_url || '';
+  link.textContent=t("Open {0} in Weblate ↗",languageName(w.language,w.language_name));
+}
+function focusNextStep() {
+  const action=[$('next-download'),$('next-weblate')].find(el=>!el.hidden && el.classList.contains('primary'));
+  if(!action)return;
+  $('next-step').scrollIntoView({block:'nearest'});action.focus();
 }
 function renderList() {
   const fragment = document.createDocumentFragment();
@@ -362,15 +369,19 @@ async function saveApproval(entryKey, decision) {
 }
 async function decide(status) {
   if(status==='accepted' && editing)return approveEdit();
+  const pending=state.counts.pending;
   await flush(); const e=current(); if(!e) return;
   editing=false;
   if(status==='accepted') {const values=e.decision.draft || (e.decision.status==='edited' ? e.decision.values : null);await saveApproval(e.key,values?{status:'edited',values}:{status});}
   else await mutate('/api/decision',{key:e.key,decision:{status}});
+  if(pending && !state.counts.pending)focusNextStep();
 }
 async function approveEdit() {
   if(!editing)return;
+  const pending=state.counts.pending;
   const values=editorValues(); await flush(); const e=current(); editing=false;
   await saveApproval(e.key,{status:'edited',values});
+  if(pending && !state.counts.pending)focusNextStep();
 }
 async function act(fn) { try { await fn(); } catch(exc) { $('save').textContent=dirty?t("⚠ Unsaved draft"):t("⚠ Operation failed");error(exc.message); } }
 $('accept').onclick=()=>act(()=>decide('accepted'));
@@ -590,8 +601,7 @@ async function changeDismissal(item,dismissed,button) {
 function validation(result) {
   const counts=result.counts;
   $('export-counts').textContent=t("{0} changes to download · {1} accepted · {2} edited", result.change_count ?? 0, counts.accepted, counts.edited);
-  const test=state.workspace?.demo || state.workspace?.simulation;
-  $('export-help').textContent=test?t("Test file: do not upload it to Weblate."):t("The file includes approved changes. Import it into Weblate with “Add as translation” or, for Locales, “Add as suggestion”. Merge translations instead of replacing the file.");
+  $('export-help').textContent=testSession()?t("Test file: do not upload it to Weblate."):t("The file includes approved changes.")+' '+t(UPLOAD_HOW);
   $('validation').replaceChildren();
   const groups=new Map();
   for(const [items,severity] of [[result.errors || [],'error'],[result.warnings || [],'warning'],[result.dismissed || [],'dismissed']]) {
@@ -647,12 +657,15 @@ async function closeExport() {
   for(const [entryKey,values] of exportDrafts){await mutate('/api/decision',{key:entryKey,decision:{status:'pending',draft:values}});}
   exportDrafts.clear();exportExpanded.clear();$('export-dialog').close();editing=!!current()?.decision.draft;render();
 }
-$('export').onclick=()=>act(async()=>{
-  await flush();$('confirm-pending').checked=false;$('confirm-warnings').checked=false;
-  await refreshExport();$('export-dialog').showModal();
-});
+function openExport() {
+  return act(async()=>{
+    await flush();$('confirm-pending').checked=false;$('confirm-warnings').checked=false;
+    await refreshExport();$('export-dialog').showModal();
+  });
+}
+$('export').onclick=openExport;
 $('close-export').onclick=()=>act(closeExport);
-$('next-download').onclick=()=>$('export').click();
+$('next-download').onclick=openExport;
 $('export-dialog').addEventListener('cancel',event=>{event.preventDefault();act(closeExport);});
 $('download').onclick=()=>act(async()=>{
   if(exportDrafts.size)throw new Error(t("Save corrections before downloading."));
@@ -662,7 +675,7 @@ $('download').onclick=()=>act(async()=>{
     if(!result.ok){exportReport={...exportReport,...result};validation(exportReport);return;}
     download(result);$('export-dialog').close();exportExpanded.clear();
     try{localStorage.setItem(downloadedKey(),String(state.revision));}catch{}
-    showNextStep();if(!$('next-weblate').hidden)$('next-weblate').focus();
+    showNextStep();focusNextStep();
   } finally {exportBusy=false;updateDownload();}
 });
 
