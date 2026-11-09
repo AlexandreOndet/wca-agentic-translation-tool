@@ -15,9 +15,12 @@ try {
  await pick('component','regulations');
  await wait("!catalogBusy() && [...document.getElementById('language').options].some(o=>o.value==='fr_ca')");
  assert(await pick('language','fr_ca')==='fr_ca','Target language selectable');
- assert(await evaluate("[...document.getElementById('reference').options].map(o=>o.value).join(',')===',fr,es_419' && document.getElementById('reference').value===''"),'Reference defaults to None and excludes the target');
- assert(await pick('reference','fr')==='fr','Reference selectable');
- assert(await evaluate("localStorage.getItem('wca-reference:fr_ca')==='fr'"),'Reference remembered per target');
+ assert(await evaluate("[...document.getElementById('reference').options].map(o=>o.value).join(',')===',fr,es_419' && document.getElementById('reference').value==='fr'"),'fr-CA defaults to French and excludes the target');
+ await pick('reference','');await pick('language','es_419');
+ assert(await evaluate("document.getElementById('reference').value===''"),'Other targets default to None');
+ await pick('language','fr_ca');
+ assert(await evaluate("document.getElementById('reference').value===''"),'Explicit None overrides the default');
+ assert(await pick('reference','fr')==='fr' && await evaluate("localStorage.getItem('wca-reference:fr_ca')==='fr'"),'Reference remembered per target');
  await evaluate("document.getElementById('manual-mode').checked=true;document.getElementById('manual-mode').dispatchEvent(new Event('change'));true");
  await click('sync');await wait("!syncing && state.workspace.reference?.language==='fr'");
  assert(await evaluate("!document.getElementById('reference-proposals').hidden && document.getElementById('reference-proposals').textContent==='Use French as proposals'"),'Reference proposals offered');

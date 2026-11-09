@@ -539,10 +539,13 @@ async function ensureLanguages(force=false) {
     fillReference();
   });
 }
+// Derived locales that default to a reference; an explicit choice (even None) overrides it.
+const DEFAULT_REFERENCE={fr_ca:'fr'};
 function fillReference() {
   const target=$('language').value;
-  let remembered='';
-  try{remembered=localStorage.getItem('wca-reference:'+target) || '';}catch{}
+  let remembered=null;
+  try{remembered=localStorage.getItem('wca-reference:'+target);}catch{}
+  remembered??=DEFAULT_REFERENCE[target.replace('-','_').toLowerCase()] || '';
   const items=(languageCache.get($('component').value) || []).filter(item=>item.code!==target);
   $('reference').replaceChildren(new Option(t("None · translate from English"),''),...items.map(item=>new Option(`${languageName(item.code,item.name)} · ${item.code}`,item.code)));
   $('reference').value=items.some(item=>item.code===remembered)?remembered:'';
