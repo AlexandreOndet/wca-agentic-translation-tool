@@ -55,6 +55,9 @@ class BrowserTests(unittest.TestCase):
     def test_stale_draft_recovery_and_session_isolation(self):
         self.run_browser('recovery')
 
+    def test_reference_language_workflow(self):
+        self.run_browser('reference')
+
     def run_browser(self, workspace_mode):
         chrome=shutil.which('google-chrome') or shutil.which('chromium')
         node=shutil.which('node')
@@ -81,6 +84,19 @@ class BrowserTests(unittest.TestCase):
                 auth=Mock();auth.status.return_value={'active':'test-account','accounts':[{'id':'test-account','email':'test@example.org','connected':True,'can_translate':True}],'error':None}
                 fake_translator=Mock();fake_translator.models.return_value=[{'id':'test-model','name':'Test model'}]
                 fake_translator.propose.side_effect=lambda provider,model,context,progress=None: {'entries':[{'key':e['key'],'target':['Bonjour, %{name}'] if e['context']=='greeting' else ['Un cube','%{count} cubes','%{count} cubes'],'note':'French test'} for e in context['requested_entries']]}
+            elif workspace_mode=='reference':
+                from glossary_store import GlossaryStore
+                meal='\nmsgctxt "meal"\nmsgid "Breakfast at %s"\nmsgstr "{}"\n'
+                client=Mock();client.env_path=root/'.env'
+                target=(fixture()+meal.format('')).replace('Language: es_419','Language: fr_CA')
+                client.download.return_value=downloads(target,fixture()+meal.format(''))
+                client.download_reference.return_value={'target':fixture('Bonjour %s').replace('#, fuzzy\n','')+meal.format('Petit-déjeuner à %s'),'glossary':None,'metadata':{'language':{'name':'French'}}}
+                client.translations.return_value=[{'code':'fr_ca','name':'French (Canada)','total':4,'translated':2},{'code':'fr','name':'French','total':4,'translated':4},{'code':'es_419','name':'Spanish','total':4,'translated':4}]
+                controller=Workspace(root/'data',client)
+                defaults=root/'defaults';defaults.mkdir()
+                for code,word in (('fr','Petit-déjeuner'),('fr_ca','Déjeuner')):
+                    (defaults/f'{code}.json').write_text(json.dumps({'version':1,'language':code,'entries':[{'source':['Breakfast'],'preferred':[word],'forbidden':[]}]}),encoding='utf-8')
+                controller.glossaries=GlossaryStore(root/'data',defaults)
             elif workspace_mode=='oauth':
                 client=Mock();client.env_path=root/'.env'
                 controller=Workspace(root/'data',client)
@@ -155,7 +171,7 @@ class BrowserTests(unittest.TestCase):
                     time.sleep(.1)
                 self.assertTrue(port_file.exists(),'Chrome did not open DevTools')
                 debug_port=int(port_file.read_text().splitlines()[0])
-                result=subprocess.run([node,str(Path(__file__).with_name('glossary_smoke.mjs' if workspace_mode=='glossary' else 'recovery_smoke.mjs' if workspace_mode=='recovery' else 'i18n_smoke.mjs' if workspace_mode=='i18n' else 'oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
+                result=subprocess.run([node,str(Path(__file__).with_name('glossary_smoke.mjs' if workspace_mode=='glossary' else 'recovery_smoke.mjs' if workspace_mode=='recovery' else 'reference_smoke.mjs' if workspace_mode=='reference' else 'i18n_smoke.mjs' if workspace_mode=='i18n' else 'oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
                 self.assertEqual(result.returncode,0,result.stdout+result.stderr)
                 print(result.stdout.strip())
                 if workspace_mode=='oauth':
