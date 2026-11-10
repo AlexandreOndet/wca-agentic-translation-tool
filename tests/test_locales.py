@@ -39,6 +39,10 @@ class LocalesTests(unittest.TestCase):
         self.client.download.return_value=data or locale_download()
         return self.w.sync('locales')
 
+    def test_test_sessions_have_no_weblate_url(self):
+        for mode in ('demo','simulation'):
+            self.assertIsNone(self.sync(dict(locale_download(),**{mode:True}))['workspace']['weblate_url'])
+
     def load(self):
         payload={'version':1,'session_id':self.w.active_id,'base_sha256':self.w.work['base_sha256'],'entries':[{'key':e['key'],'target':['Revisado uno','Revisado muchos','Revisado otros'] if e['plural_forms'] else ['Texto revisado'],'note':'Comprobado'} for e in self.w.work['entries']]}
         write_json(self.w.directory(self.w.active_id)/'proposals.json',payload)
@@ -48,6 +52,7 @@ class LocalesTests(unittest.TestCase):
         state=self.sync()
         self.assertEqual(state['workspace']['component'],'locales')
         self.assertEqual(state['workspace']['candidate_count'],2)
+        self.assertEqual(state['workspace']['weblate_url'],'https://translate.worldcubeassociation.org/projects/wca/locales/es_419/')
         cat=Catalog.read(self.w.directory(self.w.active_id)/'base.po')
         self.assertEqual(cat.nplurals,3)
         self.assertEqual(self.w.work['output_format'],'yml')

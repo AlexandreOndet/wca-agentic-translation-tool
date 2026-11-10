@@ -60,7 +60,7 @@ function showWorkspace() {
   const w=state.workspace;
   $('workspace-panel').hidden=!w;
   if(!w)return;
-  $('demo-banner').hidden=!(w.demo || w.simulation);$('demo-banner').textContent=w.simulation?t("SIMULATION · copy of a real download with artificial gaps · do not upload exports"):t("DEMO · fictional data · no Weblate connection · do not upload these files");
+  $('demo-banner').hidden=!testSession();$('demo-banner').textContent=w.simulation?t("SIMULATION · copy of a real download with artificial gaps · do not upload exports"):t("DEMO · fictional data · no Weblate connection · do not upload these files");
   if(!$('component').dataset.initialized) {$('component').value=w.component || 'locales';setLanguage(w.language || 'es_419',w.language_name);$('component').dataset.initialized='true';}
   $('export').textContent=t("Download translation ↗");
   $('workspace-status').textContent=syncFailed ? t("Synchronization did not complete. The last session has been preserved.") : !w.active_id ? t("Prepare your first synchronization.") : !w.candidate_count ? t("No pending entries in {0} / {1} in this session.", w.component, w.language) : w.ready ? t("{0} proposals ready for review.", w.candidate_count) : t("{0} entries awaiting translation.", w.candidate_count);
@@ -105,33 +105,40 @@ function showProgress() {
   $('remove-recent').hidden = !state.recent;
   showNextStep();
 }
-let lastPending=null;
-function downloadedKey() {return 'wca-downloaded:'+(state.workspace?.active_id || 'review');}
-function downloadedRevision() {return stored(downloadedKey());}
+const UPLOAD_HOW="Import it into Weblate with “Add as translation” or, for Locales, “Add as suggestion”. Merge translations instead of replacing the file.";
+function testSession() {return !!(state.workspace?.demo || state.workspace?.simulation);}
+function downloadedKey() {return 'wca-downloaded:'+state.workspace.active_id;}
+function downloadedRevision() {try{return localStorage.getItem(downloadedKey());}catch{return null;}}
+function nextStep() {
+  const w=state.workspace, c=state.counts;
+  if(!w?.active_id || !state.entries.length || c.pending)return null;
+  const downloaded=downloadedRevision()===String(state.revision);
+  return !(c.accepted+c.edited)?'empty':testSession()?(downloaded?'test-done':'test'):downloaded?'upload':'download';
+}
 // Leads from the last decision to download, then to the manual Weblate upload.
 function showNextStep() {
-  const w=state.workspace, c=state.counts, box=$('next-step');
-  const finished=state.entries.length>0 && !c.pending;
-  const justFinished=finished && lastPending>0;
-  lastPending=c.pending;
-  box.hidden=!finished;
-  if(!finished)return;
-  const changes=c.accepted+c.edited, test=w?.demo || w?.simulation;
-  const downloaded=downloadedRevision()===String(state.revision);
-  const link=$('next-weblate'), button=$('next-download');
-  link.hidden=!changes || !downloaded || test || !w?.component;
-  button.hidden=!changes;
-  button.classList.toggle('primary',!downloaded);
-  button.textContent=downloaded?t("Download again"):t("Download translation ↗");
-  if(!link.hidden){
-    link.href=`https://translate.worldcubeassociation.org/projects/wca/${encodeURIComponent(w.component)}/${encodeURIComponent(w.language)}/`;
-    link.textContent=t("Open {0} in Weblate ↗",languageName(w.language,w.language_name));
-  }
-  $('next-step-text').textContent=!changes?t("All entries reviewed. Nothing to upload: no entry was accepted or edited.")
-    :!downloaded?t("All {0} entries reviewed. Next step: download the file, then upload it in Weblate.",state.entries.length)
-    :test?t("Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate.")
-    :t("File downloaded, but Weblate does not have it yet. Last step: open Weblate, then Files → Upload translation, pick the file and choose Add as translation (never Replace). Afterwards, Sync & Translate here should show nothing pending.");
-  if(justFinished){box.scrollIntoView({block:'nearest'});button.focus();}
+  const step=nextStep(), box=$('next-step'), button=$('next-download'), link=$('next-weblate'), w=state.workspace;
+  box.hidden=!step;
+  if(!step)return;
+  const n=state.entries.length;
+  $('next-step-text').textContent={
+    empty:t("All entries reviewed. Nothing to upload: no entry was accepted or edited."),
+    test:t("All {0} entries reviewed. Next step: download the test file. Do not upload it to Weblate.",n),
+    'test-done':t("Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate."),
+    download:t("All {0} entries reviewed. Next step: download the file, then upload it in Weblate.",n),
+    upload:[t("File downloaded, but Weblate does not have it yet. Last step: open Weblate, go to Files → Upload translation and pick the file."),t(UPLOAD_HOW),t("Afterwards, Sync & Translate here should no longer show the entries you accepted or edited.")].join(' '),
+  }[step];
+  button.hidden=step==='empty';
+  button.textContent=step==='test' || step==='download'?t("Download translation ↗"):t("Download again");
+  button.classList.toggle('primary',step==='test' || step==='download');
+  link.hidden=step!=='upload' || !w.weblate_url;
+  link.href=w.weblate_url || '';
+  link.textContent=t("Open {0} in Weblate ↗",languageName(w.language,w.language_name));
+}
+function focusNextStep() {
+  const action=[$('next-download'),$('next-weblate')].find(el=>!el.hidden && el.classList.contains('primary'));
+  if(!action)return;
+  $('next-step').scrollIntoView({block:'nearest'});action.focus();
 }
 function renderList() {
   const fragment = document.createDocumentFragment();
@@ -397,15 +404,19 @@ async function saveApproval(entryKey, decision) {
 }
 async function decide(status) {
   if(status==='accepted' && editing)return approveEdit();
+  const pending=state.counts.pending;
   await flush(); const e=current(); if(!e) return;
   editing=false;
   if(status==='accepted') {const values=e.decision.draft || (e.decision.status==='edited' ? e.decision.values : null);await saveApproval(e.key,values?{status:'edited',values}:{status});}
   else await mutate('/api/decision',{key:e.key,decision:{status}});
+  if(pending && !state.counts.pending)focusNextStep();
 }
 async function approveEdit() {
   if(!editing)return;
+  const pending=state.counts.pending;
   const values=editorValues(); await flush(); const e=current(); editing=false;
   await saveApproval(e.key,{status:'edited',values});
+  if(pending && !state.counts.pending)focusNextStep();
 }
 async function act(fn) { try { await fn(); } catch(exc) { $('save').textContent=dirty?t("⚠ Unsaved draft"):t("⚠ Operation failed");error(exc.message); } }
 $('accept').onclick=()=>act(()=>decide('accepted'));
@@ -437,7 +448,7 @@ async function workspaceAction(path, data={}) {
   finally {if(isSync){clearInterval(syncTimer);syncing=false;}buttons.forEach(id=>$(id).disabled=false);showWorkspace();if(path==='/api/sync'){ensureLanguages(true);ensureProjectStatus(true);}}
 }
 $('sync').onclick=()=>act(async()=>{
-  if(['chatgpt','claude-code'].includes(provider()) && !canTranslate()){await refreshConnections();$('connections-dialog').showModal();return;}
+  if(AI[provider()] && !canTranslate()){await refreshConnections();$('connections-dialog').showModal();return;}
   await flush();await ensureModels();
   await workspaceAction('/api/sync',{component:$('component').value,language:$('language').value,reference:$('reference').value || null,provider:provider(),model:$('model').value});
 });
@@ -493,8 +504,13 @@ function setLanguage(code,name) {
 }
 function activeAccount() {return connectionState?.chatgpt.accounts.find(item=>item.id===connectionState.chatgpt.active);}
 function provider() {return $('manual-mode').checked?'manual':state?.workspace?.demo?'demo':$('ai-provider').value;}
-function canTranslate() {return provider()==='claude-code'?!!connectionState?.claude_code?.logged_in:!!activeAccount()?.can_translate;}
-function connectLabel() {return provider()==='claude-code'?t("Sign in to Claude Code"):t("Connect ChatGPT");}
+// key scopes the model cache: per ChatGPT account, one entry for the local CLI.
+const AI={
+  chatgpt:{connect:()=>t("Connect ChatGPT"),ready:()=>!!activeAccount()?.can_translate,key:()=>activeAccount()?.id},
+  'claude-code':{connect:()=>t("Sign in to Claude Code"),ready:()=>!!connectionState?.claude_code?.logged_in,key:()=>'claude-code'},
+};
+function canTranslate() {return !!AI[provider()]?.ready();}
+function connectLabel() {return (AI[provider()] || AI.chatgpt).connect();}
 function showAIOptions() {
   const manual=$('manual-mode').checked, demo=state?.workspace?.demo;
   $('manual-tools').hidden=!manual;
@@ -567,10 +583,10 @@ async function ensureProjectStatus(force=false) {
     if($('language').value===language){projectStatus=result.status;showWorkspaceWarnings();}
   });
 }
-function rememberedModel() {return stored('wca-model') || '';}
+function rememberedModel() {return stored('wca-model:'+provider()) || '';}
 async function ensureModels() {
-  const name=provider(), key=name==='claude-code'?name:activeAccount()?.id;
-  if(!state?.workspace || !canTranslate() || syncing || name==='manual' || state.workspace.demo)return;
+  const name=provider(), key=AI[name]?.key();
+  if(!state?.workspace || !canTranslate() || syncing || state.workspace.demo)return;
   const fill=items=>{
     const wanted=$('model').value || rememberedModel() || connectionState.config.model;
     $('model').replaceChildren(...items.map(item=>new Option(item.name || item.id,item.id)));
@@ -580,7 +596,7 @@ async function ensureModels() {
   return catalogTask('models:'+key,"Loading models…",async()=>{
     const result=await api('/api/models?provider='+encodeURIComponent(name));
     if(!result.items.length)throw new Error(t("The account returned no available models."));
-    if(provider()!==name || (name==='chatgpt' && activeAccount()?.id!==key))return;
+    if(provider()!==name || AI[name].key()!==key)return;
     fill(result.items);
     modelCache.set(key,result.items);
   });
@@ -589,7 +605,7 @@ $('language').onfocus=()=>{ensureLanguages();};
 $('language').onchange=()=>{fillReference();showWorkspaceWarnings();ensureProjectStatus();};
 $('reference').onchange=()=>store('wca-reference:'+$('language').value,$('reference').value);
 $('model').onfocus=()=>{ensureModels();};
-$('model').onchange=()=>store('wca-model',$('model').value);
+$('model').onchange=()=>store('wca-model:'+provider(),$('model').value);
 if(stored('wca-provider')==='claude-code')$('ai-provider').value='claude-code';
 $('ai-provider').onchange=()=>act(async()=>{
   store('wca-provider',$('ai-provider').value);
@@ -634,7 +650,7 @@ $('connections-save').onclick=()=>act(async()=>{
 });
 $('chatgpt-connect').onclick=()=>act(async()=>{
   await flush();
-  if(activeAccount()?.connected){await api('/api/chatgpt/disconnect',{});modelCache.clear();$('model').replaceChildren(new Option(t("Connect ChatGPT"),''));await refreshConnections();return;}
+  if(activeAccount()?.connected){await api('/api/chatgpt/disconnect',{});modelCache.clear();$('model').replaceChildren(new Option(connectLabel(),''));await refreshConnections();return;}
   const account=activeAccount();
   const result=await api('/api/chatgpt/start',account && !$('chatgpt-new-account').checked ? {account_id:account.id} : {});window.location.assign(result.url);
 });
@@ -663,8 +679,7 @@ async function changeDismissal(item,dismissed,button) {
 function validation(result) {
   const counts=result.counts;
   $('export-counts').textContent=t("{0} changes to download · {1} accepted · {2} edited", result.change_count ?? 0, counts.accepted, counts.edited);
-  const test=state.workspace?.demo || state.workspace?.simulation;
-  $('export-help').textContent=test?t("Test file: do not upload it to Weblate."):t("The file includes approved changes. Import it into Weblate with “Add as translation” or, for Locales, “Add as suggestion”. Merge translations instead of replacing the file.");
+  $('export-help').textContent=testSession()?t("Test file: do not upload it to Weblate."):t("The file includes approved changes.")+' '+t(UPLOAD_HOW);
   $('validation').replaceChildren();
   const groups=new Map();
   for(const [items,severity] of [[result.errors || [],'error'],[result.warnings || [],'warning'],[result.dismissed || [],'dismissed']]) {
@@ -720,12 +735,15 @@ async function closeExport() {
   for(const [entryKey,values] of exportDrafts){await mutate('/api/decision',{key:entryKey,decision:{status:'pending',draft:values}});}
   exportDrafts.clear();exportExpanded.clear();$('export-dialog').close();editing=!!current()?.decision.draft;render();
 }
-$('export').onclick=()=>act(async()=>{
-  await flush();$('confirm-pending').checked=false;$('confirm-warnings').checked=false;
-  await refreshExport();$('export-dialog').showModal();
-});
+function openExport() {
+  return act(async()=>{
+    await flush();$('confirm-pending').checked=false;$('confirm-warnings').checked=false;
+    await refreshExport();$('export-dialog').showModal();
+  });
+}
+$('export').onclick=openExport;
 $('close-export').onclick=()=>act(closeExport);
-$('next-download').onclick=()=>$('export').click();
+$('next-download').onclick=openExport;
 $('export-dialog').addEventListener('cancel',event=>{event.preventDefault();act(closeExport);});
 $('download').onclick=()=>act(async()=>{
   if(exportDrafts.size)throw new Error(t("Save corrections before downloading."));
@@ -734,8 +752,8 @@ $('download').onclick=()=>act(async()=>{
     const result=await api('/api/export',{revision:state.revision,mode:'changes',confirm_pending:$('confirm-pending').checked,confirm_warnings:$('confirm-warnings').checked});
     if(!result.ok){exportReport={...exportReport,...result};validation(exportReport);return;}
     download(result);$('export-dialog').close();exportExpanded.clear();
-    store(downloadedKey(),String(state.revision));
-    showNextStep();if(!$('next-weblate').hidden)$('next-weblate').focus();
+    try{localStorage.setItem(downloadedKey(),String(state.revision));}catch{}
+    showNextStep();focusNextStep();
   } finally {exportBusy=false;updateDownload();}
 });
 

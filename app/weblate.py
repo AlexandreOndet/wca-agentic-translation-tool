@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timezone
@@ -14,6 +15,11 @@ from configuration import checked_token, env_value
 from languages import language_code
 
 BASE = 'https://translate.worldcubeassociation.org'
+
+
+def translation_url(component, language):
+    quote = urllib.parse.quote
+    return f'{BASE}/projects/wca/{quote(component, safe="")}/{quote(language, safe="")}/'
 
 
 def load_token(env_path):

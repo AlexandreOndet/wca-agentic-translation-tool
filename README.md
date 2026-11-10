@@ -40,7 +40,7 @@ Credentials are stored separately in `data/auth/chatgpt.json` with `0600` permis
 
 Reconnecting uses the saved account registration. To sign in with another account after disconnecting, open **More options** in the ChatGPT connection card and select **Use another ChatGPT account on the next sign-in**.
 
-Claude Code is an alternative provider. Choose **Claude Code · local** under **AI**. The server runs the user's own installed, unmodified `claude` CLI in print mode (`claude -p`) with no tools, MCP servers, settings or session persistence, in an empty temporary directory, and reads its structured output. Sign-in stays with Claude Code (`claude auth login`); the application never reads or stores Claude credentials. Usage counts against the signed-in account's plan or API key. Models are the `opus`, `sonnet` and `haiku` aliases.
+Claude Code is an alternative provider. Choose **Claude Code · local** under **AI**. The server runs the user's own installed, unmodified `claude` CLI in print mode (`claude -p`) with no tools, MCP servers, settings or session persistence, in an empty temporary directory, and reads its structured output. Sign-in stays with Claude Code (`claude auth login`); the application never reads or stores Claude credentials. Usage counts against the signed-in account's plan or API key. Models are the `opus`, `sonnet` and `haiku` aliases. If `ANTHROPIC_API_KEY` is set where the server runs, Claude Code bills that API key instead of the subscription. Authentication configured only in Claude Code settings (such as `apiKeyHelper`) can show as signed in but is not used, because translation runs without settings.
 
 ## Data and translation behavior
 

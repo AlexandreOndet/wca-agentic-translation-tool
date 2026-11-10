@@ -47,7 +47,7 @@ Si tu idioma se adapta de otro en lugar del inglés, elegilo en **Más opciones 
 2. Abrí **Conexiones**.
 3. Iniciá sesión en [Weblate de WCA](https://translate.worldcubeassociation.org/), pulsá tu icono de usuario arriba a la derecha y entrá en **Settings → API access** (en versiones nuevas, **Developer settings**). Copiá tu token de API. Volvé a la aplicación, pegalo en **Token de Weblate** y pulsá **Guardar**.
 4. Pulsá **Conectar ChatGPT** y completá el inicio de sesión. Volvé a la aplicación y cerrá **Conexiones** con **×**.
-   ¿Usás Claude? Instalá [Claude Code](https://code.claude.com/docs), ejecutá `claude auth login` en una terminal con tu suscripción de Claude y elegí **Claude Code · local** en **IA** dentro de la aplicación. No hace falta el botón de ChatGPT.
+   ¿Usás Claude? Instalá [Claude Code](https://code.claude.com/docs), ejecutá `claude auth login` en una terminal con tu suscripción de Claude y elegí **Claude Code · local** en **IA** dentro de la aplicación. No hace falta el botón de ChatGPT. Si tenés `ANTHROPIC_API_KEY` definida en tu computadora, el uso se factura a esa API key en lugar de tu suscripción.
 5. Elegí el **Componente** en el que querés trabajar: **Locales**, **Payload CMS** o **Regulations**.
 6. En **Idioma de destino**, elegí el idioma al que querés traducir. Esperá que termine de cargar. Antes de generar, [revisá el glosario de tu idioma](#preparar-el-glosario-de-tu-idioma).
 7. Pulsá **Sincronizar y traducir**. Si aparece **Continuar traducción**, pulsalo hasta que las propuestas estén listas. Si no hay pendientes, terminaste con ese componente.

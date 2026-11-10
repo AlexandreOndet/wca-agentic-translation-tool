@@ -70,7 +70,7 @@ class StreamingTests(unittest.TestCase):
                 if not release.wait(timeout=8):raise ReviewError('La prueba no liberó la descarga')
                 return super().download()
         self.workspace=Workspace(self.tmp.name,SlowClient(delay=0))
-        self.server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(self.workspace))
+        self.server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(self.workspace, translators={}))
         self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
         def cleanup():
             self.release.set();self.server.shutdown();self.server.server_close();self.thread.join(timeout=3)
