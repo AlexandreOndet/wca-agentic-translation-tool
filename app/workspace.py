@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 
 
 from core import Catalog, Review, ReviewError, atomic_write, digest, forms
-from weblate import Client, load_token
+from weblate import Client, load_token, translation_url
 from locales import LocalesReview
 from payload import PayloadReview
 from languages import language_code
@@ -377,4 +377,6 @@ When finished, tell me: “Return to the interface, click Load proposals and rev
         generation_path = self.directory(self.active_id) / 'generation.json' if self.active_id else None
         ai_completed = len(read_json(generation_path).get('entries', {})) if generation_path and generation_path.exists() else 0
         state['workspace'] = {'created_at': self.manifest.get('created_at') if self.manifest else None, 'language': self.manifest.get('language', 'es_419') if self.manifest else 'es_419', 'language_name': self.work.get('language_name', 'es_419') if self.work else 'Latin American Spanish', 'component': self.manifest.get('component', 'regulations') if self.manifest else None, 'output_format': {'locales': 'yml', 'payload': 'json'}.get(self.manifest.get('component') if self.manifest else None, 'po'), 'active_id': self.active_id, 'revision': self.generation, 'sessions': sessions, 'simulation': bool(getattr(self.client, 'is_simulation', False) is True or (self.manifest and self.manifest.get('simulation'))), 'ai_completed': ai_completed, 'glossary_count': len(self.work.get('glossary', [])) if self.work else 0, 'candidate_count': len(work_entries), 'ready': ready, 'demo': bool(getattr(self.client, 'is_demo', False) is True or (self.manifest and self.manifest.get('demo'))), 'token_configured': False if getattr(self.client, 'is_demo', False) is True else bool(self.client.token()) if isinstance(self.client, Client) else bool(load_token(self.client.env_path)), 'warnings': self.manifest.get('warnings', []) if self.manifest else [], 'prompt': self.prompt_text(self.directory(self.active_id), self.work) if self.active_id else '', 'folder': str(self.directory(self.active_id)) if self.active_id else None}
+        w = state['workspace']
+        w['weblate_url'] = translation_url(w['component'], w['language']) if w['component'] and not (w['demo'] or w['simulation']) else None
         return state
