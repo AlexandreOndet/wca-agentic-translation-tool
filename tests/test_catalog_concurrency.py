@@ -30,7 +30,7 @@ class CatalogConcurrencyTests(unittest.TestCase):
             'entries':[{'key':item['key'],'target':['Texto revisado'],'note':''} for item in self.workspace.work['entries']]})
         self.workspace.load_proposals()
         self.translator=Mock()
-        self.server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(self.workspace,Connections(root/'.env'),translator=self.translator))
+        self.server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(self.workspace,Connections(root/'.env'),translators={'chatgpt':self.translator}))
         self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
         self.addCleanup(self.cleanup)
 
@@ -71,7 +71,7 @@ class CatalogConcurrencyTests(unittest.TestCase):
         self.assertFalse(worker.is_alive());self.assertEqual(result[0][0],200)
 
     def test_model_lookup_does_not_block_reload_or_first_approval(self):
-        self.translator.models.side_effect=lambda provider:self.wait_catalog([{'id':'test-model','name':'Test'}])
+        self.translator.models.side_effect=lambda:self.wait_catalog([{'id':'test-model','name':'Test'}])
         self.exercise('/api/models?provider=chatgpt')
 
     def test_language_lookup_does_not_block_reload_or_first_approval(self):

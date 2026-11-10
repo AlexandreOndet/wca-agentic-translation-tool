@@ -364,7 +364,7 @@ async function workspaceAction(path, data={}) {
   finally {if(isSync){clearInterval(syncTimer);syncing=false;}buttons.forEach(id=>$(id).disabled=false);showWorkspace();if(path==='/api/sync'){ensureLanguages(true);ensureProjectStatus(true);}}
 }
 $('sync').onclick=()=>act(async()=>{
-  if(provider()==='chatgpt' && !activeAccount()?.can_translate){await refreshConnections();$('connections-dialog').showModal();return;}
+  if(AI[provider()] && !canTranslate()){await refreshConnections();$('connections-dialog').showModal();return;}
   await flush();await ensureModels();
   await workspaceAction('/api/sync',{component:$('component').value,language:$('language').value,provider:provider(),model:$('model').value});
 });
@@ -417,16 +417,24 @@ function setLanguage(code,name) {
   $('language').value=code;
 }
 function activeAccount() {return connectionState?.chatgpt.accounts.find(item=>item.id===connectionState.chatgpt.active);}
-function provider() {return $('manual-mode').checked?'manual':state?.workspace?.demo?'demo':'chatgpt';}
+function provider() {return $('manual-mode').checked?'manual':state?.workspace?.demo?'demo':$('ai-provider').value;}
+// key scopes the model cache: per ChatGPT account, one entry for the local CLI.
+const AI={
+  chatgpt:{connect:()=>t("Connect ChatGPT"),ready:()=>!!activeAccount()?.can_translate,key:()=>activeAccount()?.id},
+  'claude-code':{connect:()=>t("Sign in to Claude Code"),ready:()=>!!connectionState?.claude_code?.logged_in,key:()=>'claude-code'},
+};
+function canTranslate() {return !!AI[provider()]?.ready();}
+function connectLabel() {return (AI[provider()] || AI.chatgpt).connect();}
 function showAIOptions() {
   const manual=$('manual-mode').checked, demo=state?.workspace?.demo;
   $('manual-tools').hidden=!manual;
-  $('model').disabled=manual || demo || syncing || catalogBusy() || !activeAccount()?.can_translate;
+  $('ai-provider').disabled=manual || demo || syncing || catalogBusy();
+  $('model').disabled=manual || demo || syncing || catalogBusy() || !canTranslate();
   const needed=state?.workspace?.active_id && !state.workspace.ready && state.workspace.candidate_count;
   $('generate').hidden=!needed || manual;
-  $('generate').disabled=syncing || catalogBusy() || (!demo && !activeAccount()?.can_translate);
+  $('generate').disabled=syncing || catalogBusy() || (!demo && !canTranslate());
   $('generate').textContent=state?.workspace?.ai_completed?t("Continue translation"):t("Translate this review");
-  if(!demo && !activeAccount()?.can_translate && !$('model').value)$('model').replaceChildren(new Option(t("Connect ChatGPT"),''));
+  if(!demo && !canTranslate() && !$('model').value)$('model').replaceChildren(new Option(connectLabel(),''));
   if(demo && !$('model').value){$('model').replaceChildren(new Option(t("Sample proposals"),''));}
 }
 const languageCache=new Map(), modelCache=new Map(), catalogTasks=new Map(), catalogMessages=new Map();
@@ -476,25 +484,33 @@ async function ensureProjectStatus(force=false) {
     if($('language').value===language){projectStatus=result.status;showWorkspaceWarnings();}
   });
 }
-function rememberedModel() {try{return localStorage.getItem('wca-model') || '';}catch{return '';}}
+function rememberedModel() {try{return localStorage.getItem('wca-model:'+provider()) || '';}catch{return '';}}
 async function ensureModels() {
-  const account=activeAccount();
-  if(!state?.workspace || !account?.can_translate || syncing || provider()==='manual' || state.workspace.demo)return;
-  if(modelCache.has(account.id))return;
-  return catalogTask('models:'+account.id,"Loading models…",async()=>{
-    const result=await api('/api/models?provider=chatgpt');
-    if(!result.items.length)throw new Error(t("The account returned no available models."));
-    if(activeAccount()?.id!==account.id)return;
+  const name=provider(), key=AI[name]?.key();
+  if(!state?.workspace || !canTranslate() || syncing || state.workspace.demo)return;
+  const fill=items=>{
     const wanted=$('model').value || rememberedModel() || connectionState.config.model;
-    $('model').replaceChildren(...result.items.map(item=>new Option(item.name || item.id,item.id)));
-    if(result.items.some(item=>item.id===wanted))$('model').value=wanted;
-    modelCache.set(account.id,result.items);
+    $('model').replaceChildren(...items.map(item=>new Option(item.name || item.id,item.id)));
+    if(items.some(item=>item.id===wanted))$('model').value=wanted;
+  };
+  if(modelCache.has(key)){if(!$('model').value)fill(modelCache.get(key));return;}
+  return catalogTask('models:'+key,"Loading models…",async()=>{
+    const result=await api('/api/models?provider='+encodeURIComponent(name));
+    if(!result.items.length)throw new Error(t("The account returned no available models."));
+    if(provider()!==name || AI[name].key()!==key)return;
+    fill(result.items);
+    modelCache.set(key,result.items);
   });
 }
 $('language').onfocus=()=>{ensureLanguages();};
 $('language').onchange=()=>{showWorkspaceWarnings();ensureProjectStatus();};
 $('model').onfocus=()=>{ensureModels();};
-$('model').onchange=()=>{try{localStorage.setItem('wca-model',$('model').value);}catch{}};
+$('model').onchange=()=>{try{localStorage.setItem('wca-model:'+provider(),$('model').value);}catch{}};
+try{if(localStorage.getItem('wca-provider')==='claude-code')$('ai-provider').value='claude-code';}catch{}
+$('ai-provider').onchange=()=>act(async()=>{
+  try{localStorage.setItem('wca-provider',$('ai-provider').value);}catch{}
+  $('model').replaceChildren(new Option(connectLabel(),''));showAIOptions();await ensureModels();
+});
 $('component').onchange=()=>act(async()=>{
   const items=languageCache.get($('component').value);
   if(items){const previous=$('language').value;$('language').replaceChildren(...items.map(item=>new Option(t("{0} · {1} · {2} pending", languageName(item.code,item.name), item.code, Math.max(0,item.total-item.translated)),item.code)));if(items.some(item=>item.code===previous))$('language').value=previous;}
@@ -511,7 +527,9 @@ async function refreshConnections() {
 }
 function showConnections() {
   const active=activeAccount(), configured=connectionState.config.weblate;
-  $('connection-summary').textContent=connectionState.demo?t("Demo without credentials"):`${configured?'Weblate ✓':t("Weblate token missing")} · ${active?.connected?'ChatGPT ✓':t("ChatGPT disconnected")}`;
+  $('connection-summary').textContent=connectionState.demo?t("Demo without credentials"):`${configured?'Weblate ✓':t("Weblate token missing")} · ${active?.connected?'ChatGPT ✓':t("ChatGPT disconnected")}${connectionState.claude_code?.logged_in?' · Claude Code ✓':''}`;
+  const claude=connectionState.claude_code;
+  $('claude-status').textContent=!claude?.available?t("Not installed"):claude.logged_in?t("✓ Signed in · {0}",claude.subscription):t("Installed · not signed in");
   $('chatgpt-status').textContent=active?.connected?`${active.email}${active.can_translate?'':t(" · plan usage authorization required")}`:active?t("{0} · disconnected",active.email):t("Disconnected");
   $('chatgpt-options').hidden=!active || active.connected;
   $('chatgpt-connect').textContent=active?.connected?t("Disconnect"):t("Connect ChatGPT");
@@ -532,7 +550,7 @@ $('connections-save').onclick=()=>act(async()=>{
 });
 $('chatgpt-connect').onclick=()=>act(async()=>{
   await flush();
-  if(activeAccount()?.connected){await api('/api/chatgpt/disconnect',{});modelCache.clear();$('model').replaceChildren(new Option(t("Connect ChatGPT"),''));await refreshConnections();return;}
+  if(activeAccount()?.connected){await api('/api/chatgpt/disconnect',{});modelCache.clear();$('model').replaceChildren(new Option(connectLabel(),''));await refreshConnections();return;}
   const account=activeAccount();
   const result=await api('/api/chatgpt/start',account && !$('chatgpt-new-account').checked ? {account_id:account.id} : {});window.location.assign(result.url);
 });
