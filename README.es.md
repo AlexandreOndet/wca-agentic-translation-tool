@@ -40,6 +40,8 @@ Las credenciales se guardan por separado en `data/auth/chatgpt.json`, con permis
 
 Reconectar reutiliza el registro de la cuenta guardada. Para iniciar sesión con otra cuenta después de desconectarte, abrí **Más opciones** en la tarjeta de conexión de ChatGPT y marcá **Usar otra cuenta de ChatGPT en el próximo inicio de sesión**.
 
+Claude Code es un proveedor alternativo. Elegí **Claude Code · local** en **IA**. El servidor ejecuta la CLI `claude` instalada por el propio usuario, sin modificar, en modo print (`claude -p`), sin herramientas, servidores MCP, configuración ni persistencia de sesión, en un directorio temporal vacío, y lee su salida estructurada. El inicio de sesión queda en Claude Code (`claude auth login`); la aplicación nunca lee ni guarda credenciales de Claude. El uso se descuenta del plan o la API key de la cuenta conectada. Los modelos son los alias `opus`, `sonnet` y `haiku`. Si `ANTHROPIC_API_KEY` está definida donde corre el servidor, Claude Code factura esa API key en lugar de la suscripción. La autenticación configurada solo en los ajustes de Claude Code (como `apiKeyHelper`) puede figurar como sesión iniciada, pero no se usa, porque la traducción se ejecuta sin ajustes.
+
 ## Datos y funcionamiento
 
 Las sesiones se separan por componente, idioma y modo real/demo/simulación. Se guardan en `data/sessions/<fechaUTC>-<id>/`, con referencias inmutables y hashes, mapeos de formatos nativos, `glossary.tbx` opcional, `work.json`, `PROMPT.txt`, progreso y propuestas. La revisión y las exportaciones quedan en la carpeta `review/` de cada sesión. Los nombres internos `decisiones.json` y `resumen_exportacion.json` se conservan por compatibilidad. Protegé las credenciales al respaldar `data/`.

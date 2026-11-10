@@ -14,22 +14,32 @@ from workspace import Workspace
 from weblate import Client
 from connections import Connections
 from openai_auth import ChatGPTAuth
-from translation import OpenAITranslator, generate_proposals
+from translation import OpenAITranslator, generate_proposals, openai_api_key, translator_for
+from claude_code import UNAVAILABLE, ClaudeCodeTranslator
 from network import LOCAL_REQUEST_TIMEOUT
 
 ROOT = Path(__file__).resolve().parent
 
 
-def make_handler(controller, connections=None, auth=None, translator=None):
+def ai_translators(connections, auth, claude=None):
+    return {'chatgpt': OpenAITranslator(auth.access_token), 'openai': OpenAITranslator(lambda: openai_api_key(connections)), 'claude-code': claude or ClaudeCodeTranslator()}
+
+
+def make_handler(controller, connections=None, auth=None, translators=None):
     demo = isinstance(controller, Workspace) and getattr(controller.client, 'is_demo', False) is True
     connections = connections or Connections(demo=demo)
     auth = auth or ChatGPTAuth(controller.data_dir / 'auth' / 'chatgpt.json')
-    translator = translator or OpenAITranslator(connections, auth)
+    translators = ai_translators(connections, auth) if translators is None else translators
     if isinstance(controller, Workspace) and isinstance(controller.client, Client):
         controller.client.token_getter = lambda: connections.get('WEBLATE_TOKEN')
     operation_lock = threading.Lock()
     catalog_lock = threading.Lock()
     cached_state = None
+
+    def connection_status():
+        claude = None if demo else translators.get('claude-code')
+        claude_status = claude.status() if claude else UNAVAILABLE
+        return {'config': connections.status(), 'chatgpt': auth.status(), 'claude_code': claude_status, 'demo': demo}
 
     def snapshot():
         nonlocal cached_state
@@ -129,7 +139,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     self.json_response({'error': str(exc)}, 400)
                 return
             if path == '/api/connections':
-                self.json_response({'config': connections.status(), 'chatgpt': auth.status(), 'demo': demo})
+                self.json_response(connection_status())
                 return
             if path in ('/api/languages', '/api/models', '/api/project-status'):
                 # An options lookup must not block local review.
@@ -156,7 +166,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                                     client.token_getter = controller.client.token
                                 result = client.translations(query.get('component', ['locales'])[0])
                         else:
-                            result = [] if demo else translator.models(query.get('provider', ['chatgpt'])[0])
+                            result = [] if demo else translator_for(translators, query.get('provider', ['chatgpt'])[0]).models()
                         self.json_response({'items': result})
                     except (ReviewError, ValueError, TypeError, KeyError) as exc:
                         self.json_response({'error': str(exc)}, 400)
@@ -220,7 +230,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                 if not translate_only:
                     controller.sync(component, progress=emit, language=language)
                 if (translate_only or provider != 'manual') and controller.work and controller.work['entries']:
-                    generate_proposals(controller, translator, provider, model, progress=emit)
+                    generate_proposals(controller, translators, provider, model, progress=emit)
                 cached_state = snapshot()
                 emit({'result': cached_state})
             except (ReviewError, ValueError, KeyError, TypeError) as exc:
@@ -256,7 +266,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     return
                 if path == '/api/connections':
                     connections.configure(data.get('values', {}))
-                    self.json_response({'config': connections.status(), 'chatgpt': auth.status(), 'demo': demo})
+                    self.json_response(connection_status())
                     return
                 if path in ('/api/chatgpt/start', '/api/chatgpt/select', '/api/chatgpt/disconnect'):
                     if demo:

@@ -28,7 +28,7 @@ class AuthNavigationTests(unittest.TestCase):
         client.env_path = root / '.env'
         self.workspace = Workspace(root / 'data', client)
         self.auth = ChatGPTAuth(root / 'auth.json')
-        self.server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(self.workspace, Connections(root / '.env'), self.auth))
+        self.server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(self.workspace, Connections(root / '.env'), self.auth, translators={}))
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         self.addCleanup(self.stop)

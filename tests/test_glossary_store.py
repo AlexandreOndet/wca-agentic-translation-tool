@@ -142,7 +142,7 @@ class GlossaryAPITests(unittest.TestCase):
         root = Path(self.tmp.name)
         workspace = Workspace(root / 'data', Mock())
         workspace.glossaries = GlossaryStore(root / 'data', root / 'defaults')
-        self.server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(workspace, Connections(root / '.env')))
+        self.server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(workspace, Connections(root / '.env'), translators={}))
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         self.addCleanup(self.stop)
