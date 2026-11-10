@@ -124,10 +124,23 @@ def make_candidates(english, base, previous=None, pending_source_changes=None):
     return items
 
 
-def attach_reference(candidates, reference_po, reference_terms, terms):
-    reference_entries = Catalog(reference_po).by_key
+def attach_reference(candidates, reference_po, reference_terms, terms, target_catalog, target_mapping=None, reference_mapping=None):
+    reference_catalog = Catalog(reference_po)
     for item in candidates:
-        found = reference_entries.get(item['key'])
+        found = reference_catalog.by_key.get(item['key'])
+        if found is not None and found.msgid_plural:
+            # Locales PO indices are synthetic: only the native category names
+            # establish whether forms can be copied in the same order.
+            if target_mapping is not None or reference_mapping is not None:
+                target_names = (target_mapping or {}).get(item['key'], {}).get('plural_forms')
+                reference_names = (reference_mapping or {}).get(item['key'], {}).get('plural_forms')
+                if not target_names or target_names != reference_names:
+                    continue
+            else:
+                target_rule = re.sub(r'\s+', '', target_catalog.po.metadata.get('Plural-Forms', ''))
+                reference_rule = re.sub(r'\s+', '', reference_catalog.po.metadata.get('Plural-Forms', ''))
+                if not re.search(r'(?:^|;)plural=[^;]+', target_rule) or target_rule != reference_rule:
+                    continue
         values = forms(found) if found is not None and 'fuzzy' not in found.flags else []
         if len(values) == len(item['original']) and all(v.strip() for v in values):
             item['reference'] = values
@@ -253,7 +266,7 @@ class Workspace:
         terms = merge_terms(glossary_terms(glossary, language), configured_glossary['entries'])
         if referenced:
             reference_terms = merge_terms(glossary_terms(referenced['glossary'], reference), self.glossaries.snapshot(reference)['entries'])
-            attach_reference(candidates, referenced['target'], reference_terms, terms)
+            attach_reference(candidates, referenced['target'], reference_terms, terms, base, downloaded.get('yaml_mapping'), referenced.get('yaml_mapping'))
         now = datetime.now(timezone.utc)
         session_id = now.strftime('%Y%m%dT%H%M%SZ') + '-' + uuid.uuid4().hex[:8]
         folder = self.directory(session_id)

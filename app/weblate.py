@@ -228,7 +228,10 @@ class Client:
 
     def download_reference(self, language):
         result = self._download(language)
-        return {'target': result['target'], 'glossary': result['glossary'], 'metadata': result['metadata'].get(language, {})}
+        reference = {'target': result['target'], 'glossary': result['glossary'], 'metadata': result['metadata'].get(language, {})}
+        if result.get('yaml_mapping') is not None:
+            reference['yaml_mapping'] = result['yaml_mapping']
+        return reference
 
     def _download(self, language):
         for attempt in range(2):
