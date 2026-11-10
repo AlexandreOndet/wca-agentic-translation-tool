@@ -1,0 +1,1832 @@
+{
+  "version": 1,
+  "language": "fr",
+  "entries": [
+    {
+      "source": [
+        "2x2x2 Cube"
+      ],
+      "preferred": [
+        "Cube 2x2x2"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->222."
+    },
+    {
+      "source": [
+        "3x3x3 Blindfolded"
+      ],
+      "preferred": [
+        "3x3x3 à l'aveugle"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->333bf."
+    },
+    {
+      "source": [
+        "3x3x3 Cube"
+      ],
+      "preferred": [
+        "Cube 3x3x3"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->333."
+    },
+    {
+      "source": [
+        "3x3x3 Fewest Moves"
+      ],
+      "preferred": [
+        "3x3x3 résolution optimisée"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->333fm; Regulations: 1f."
+    },
+    {
+      "source": [
+        "3x3x3 Multi-Blind"
+      ],
+      "preferred": [
+        "3x3x3 résolutions multiples à l'aveugle"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->333mbf."
+    },
+    {
+      "source": [
+        "3x3x3 One-Handed"
+      ],
+      "preferred": [
+        "3x3x3 à une main"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->333oh."
+    },
+    {
+      "source": [
+        "4x4x4 Blindfolded"
+      ],
+      "preferred": [
+        "Cube 4x4x4 à l'aveugle"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->444bf. Incohérent avec « 3x3x3 à l'aveugle » (sans « Cube »)."
+    },
+    {
+      "source": [
+        "4x4x4 Cube"
+      ],
+      "preferred": [
+        "Cube 4x4x4"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->444."
+    },
+    {
+      "source": [
+        "5x5x5 Blindfolded"
+      ],
+      "preferred": [
+        "Cube 5x5x5 à l'aveugle"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->555bf. Même incohérence que 4x4x4."
+    },
+    {
+      "source": [
+        "5x5x5 Cube"
+      ],
+      "preferred": [
+        "Cube 5x5x5"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->555."
+    },
+    {
+      "source": [
+        "6x6x6 Cube"
+      ],
+      "preferred": [
+        "Cube 6x6x6"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->666."
+    },
+    {
+      "source": [
+        "7x7x7 Cube"
+      ],
+      "preferred": [
+        "Cube 7x7x7"
+      ],
+      "forbidden": [],
+      "note": "Locales: events->777."
+    },
+    {
+      "source": [
+        "advancement condition",
+        "advancement conditions"
+      ],
+      "preferred": [
+        "condition de passage au tour suivant",
+        "conditions de passage au tour suivant"
+      ],
+      "forbidden": [],
+      "note": "Locales utilise aussi « condition de qualification » et « condition d'avancement »."
+    },
+    {
+      "source": [
+        "Approved Registrations"
+      ],
+      "preferred": [
+        "Inscriptions approuvées"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "attempt",
+        "attempts"
+      ],
+      "preferred": [
+        "essai",
+        "essais"
+      ],
+      "forbidden": [],
+      "note": "Regulations: toujours « essai ». Locales utilise parfois « tentative »."
+    },
+    {
+      "source": [
+        "average",
+        "averages"
+      ],
+      "preferred": [
+        "moyenne",
+        "moyennes"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Average of 5"
+      ],
+      "preferred": [
+        "Moyenne élaguée des 5"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Best of 1"
+      ],
+      "preferred": [
+        "Meilleur résultat"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Best of 2"
+      ],
+      "preferred": [
+        "Meilleur des 2"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Best of 3"
+      ],
+      "preferred": [
+        "Meilleur des 3"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Best of 5"
+      ],
+      "preferred": [
+        "Meilleur des 5"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "blindfold"
+      ],
+      "preferred": [
+        "bandeau"
+      ],
+      "forbidden": [],
+      "note": "Regulations: B1b."
+    },
+    {
+      "source": [
+        "blindfolded phase"
+      ],
+      "preferred": [
+        "phase de résolution à l'aveugle"
+      ],
+      "forbidden": [],
+      "note": "Regulations: B4."
+    },
+    {
+      "source": [
+        "Breakfast"
+      ],
+      "preferred": [
+        "Petit-déjeuner"
+      ],
+      "forbidden": [],
+      "note": "Locales: activity->breakfast."
+    },
+    {
+      "source": [
+        "center piece",
+        "center pieces"
+      ],
+      "preferred": [
+        "pièce centrale",
+        "pièces centrales"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 3l1."
+    },
+    {
+      "source": [
+        "Clock"
+      ],
+      "preferred": [
+        "Clock"
+      ],
+      "forbidden": [],
+      "note": "Nom propre, non traduit."
+    },
+    {
+      "source": [
+        "competition",
+        "competitions"
+      ],
+      "preferred": [
+        "compétition",
+        "compétitions"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "competition area"
+      ],
+      "preferred": [
+        "zone de compétition"
+      ],
+      "forbidden": [],
+      "note": "Choix de relecture. Le Règlement (7c, 7e) dit « espace de compétition »."
+    },
+    {
+      "source": [
+        "competition series"
+      ],
+      "preferred": [
+        "série de compétitions"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "competitor",
+        "competitors"
+      ],
+      "preferred": [
+        "compétiteur",
+        "compétiteurs"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "competitor limit"
+      ],
+      "preferred": [
+        "limite de compétiteurs"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Completed Solves"
+      ],
+      "preferred": [
+        "Résolutions terminées"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Continental Championship",
+        "Continental Championships"
+      ],
+      "preferred": [
+        "Championnat Continental",
+        "Championnats Continentaux"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "corner piece",
+        "corner pieces"
+      ],
+      "preferred": [
+        "coin",
+        "coins"
+      ],
+      "forbidden": [],
+      "note": "Choix de relecture. Le Règlement (5d2) dit « pièce d'angle »."
+    },
+    {
+      "source": [
+        "cumulative time limit"
+      ],
+      "preferred": [
+        "limite de temps cumulée"
+      ],
+      "forbidden": [],
+      "note": "Locales utilise aussi « cumulative »."
+    },
+    {
+      "source": [
+        "cutoff"
+      ],
+      "preferred": [
+        "cutoff"
+      ],
+      "forbidden": [],
+      "note": "Locales fr garde l'anglicisme (« la cutoff », 11 occurrences dans 9 messages) ; « seuil » n'y apparaît qu'une fois."
+    },
+    {
+      "source": [
+        "Cutoff Round",
+        "Cutoff Rounds"
+      ],
+      "preferred": [
+        "tour avec « Cutoff »",
+        "tours avec « Cutoff »"
+      ],
+      "forbidden": [],
+      "note": "Choix de relecture. Le Règlement (9o1) dit « tours « Cutoff » »."
+    },
+    {
+      "source": [
+        "Delegate",
+        "Delegates",
+        "WCA Delegate",
+        "WCA Delegates",
+        "WCA Delegate(s)"
+      ],
+      "preferred": [
+        "Délégué",
+        "Délégués",
+        "Délégué WCA",
+        "Délégués WCA",
+        "Délégué·e"
+      ],
+      "forbidden": [],
+      "note": "Locales, Regulations. Majuscule pour le rôle."
+    },
+    {
+      "source": [
+        "Delegate Report",
+        "Delegate Reports"
+      ],
+      "preferred": [
+        "rapport des Délégués",
+        "rapports des Délégués"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Dinner"
+      ],
+      "preferred": [
+        "Dîner"
+      ],
+      "forbidden": [],
+      "note": "Locales: activity->dinner."
+    },
+    {
+      "source": [
+        "disqualification"
+      ],
+      "preferred": [
+        "disqualification"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 5d3."
+    },
+    {
+      "source": [
+        "DNF"
+      ],
+      "preferred": [
+        "DNF"
+      ],
+      "forbidden": [],
+      "note": "Abréviation, non traduite."
+    },
+    {
+      "source": [
+        "DNS"
+      ],
+      "preferred": [
+        "DNS"
+      ],
+      "forbidden": [],
+      "note": "Abréviation, non traduite."
+    },
+    {
+      "source": [
+        "Dual Round",
+        "Dual Rounds"
+      ],
+      "preferred": [
+        "double confrontation",
+        "doubles confrontations"
+      ],
+      "forbidden": [],
+      "note": "Locales: competitions->live->admin->add_competitor->multiple_rounds; competitions->competition_form->hints->website->scoretaking_software."
+    },
+    {
+      "source": [
+        "edge piece",
+        "edge pieces"
+      ],
+      "preferred": [
+        "arête",
+        "arêtes"
+      ],
+      "forbidden": [],
+      "note": "Choix de relecture. Le Règlement (5b5f++) dit « pièce de bord »."
+    },
+    {
+      "source": [
+        "email",
+        "emails",
+        "email address"
+      ],
+      "preferred": [
+        "e-mail",
+        "e-mails",
+        "adresse e-mail"
+      ],
+      "forbidden": [],
+      "note": "Locales fr utilise surtout « e-mail »."
+    },
+    {
+      "source": [
+        "event",
+        "events"
+      ],
+      "preferred": [
+        "épreuve",
+        "épreuves"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "extra attempt",
+        "extra attempts"
+      ],
+      "preferred": [
+        "essai supplémentaire",
+        "essais supplémentaires"
+      ],
+      "forbidden": [],
+      "note": "Regulations"
+    },
+    {
+      "source": [
+        "face moves"
+      ],
+      "preferred": [
+        "mouvements de face"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 12a1."
+    },
+    {
+      "source": [
+        "Face Turning Octahedron",
+        "FTO"
+      ],
+      "preferred": [
+        "Octaminx",
+        "FTO"
+      ],
+      "forbidden": [],
+      "note": "Locales: « Octaminx (FTO) »."
+    },
+    {
+      "source": [
+        "Final round"
+      ],
+      "preferred": [
+        "tour final",
+        "finale"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 9b7b, 11f1c."
+    },
+    {
+      "source": [
+        "Final Stage"
+      ],
+      "preferred": [
+        "phase Finale"
+      ],
+      "forbidden": [],
+      "note": "Regulations: I2."
+    },
+    {
+      "source": [
+        "First round"
+      ],
+      "preferred": [
+        "Premier tour"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "guest",
+        "guests"
+      ],
+      "preferred": [
+        "accompagnateur",
+        "accompagnateurs"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Head to Head",
+        "H2H"
+      ],
+      "preferred": [
+        "Face à Face",
+        "1V1"
+      ],
+      "forbidden": [],
+      "note": "Choix de relecture. Le Règlement (9b7b) garde « Head to Head »."
+    },
+    {
+      "source": [
+        "hoodie",
+        "hoodies"
+      ],
+      "preferred": [
+        "sweat à capuche",
+        "sweats à capuche"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "incident",
+        "incidents"
+      ],
+      "preferred": [
+        "incident",
+        "incidents"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "inspection"
+      ],
+      "preferred": [
+        "inspection"
+      ],
+      "forbidden": [],
+      "note": "Regulations: A3."
+    },
+    {
+      "source": [
+        "judge",
+        "judges"
+      ],
+      "preferred": [
+        "juge",
+        "juges"
+      ],
+      "forbidden": [],
+      "note": "Regulations"
+    },
+    {
+      "source": [
+        "Junior Delegate",
+        "Junior Delegates"
+      ],
+      "preferred": [
+        "Délégué Junior",
+        "Délégués Juniors"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Lead Delegate"
+      ],
+      "preferred": [
+        "Délégué principal"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "live results"
+      ],
+      "preferred": [
+        "résultats en direct"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Lunch"
+      ],
+      "preferred": [
+        "Déjeuner"
+      ],
+      "forbidden": [],
+      "note": "Locales: activity->lunch."
+    },
+    {
+      "source": [
+        "mat"
+      ],
+      "preferred": [
+        "tapis"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 7f1b."
+    },
+    {
+      "source": [
+        "mean",
+        "means",
+        "arithmetic mean"
+      ],
+      "preferred": [
+        "moyenne",
+        "moyennes",
+        "moyenne arithmétique"
+      ],
+      "forbidden": [],
+      "note": "Locales: « mean » et « average » donnent tous deux « moyenne »."
+    },
+    {
+      "source": [
+        "Mean of 3"
+      ],
+      "preferred": [
+        "Moyenne des 3"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "medal collection"
+      ],
+      "preferred": [
+        "Médailles obtenues"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Megaminx"
+      ],
+      "preferred": [
+        "Mégaminx"
+      ],
+      "forbidden": [],
+      "note": "Choix de relecture : avec accent."
+    },
+    {
+      "source": [
+        "memorization phase"
+      ],
+      "preferred": [
+        "phase de mémorisation"
+      ],
+      "forbidden": [],
+      "note": "Regulations: B3."
+    },
+    {
+      "source": [
+        "misalignment"
+      ],
+      "preferred": [
+        "désalignement"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 10f."
+    },
+    {
+      "source": [
+        "moves"
+      ],
+      "preferred": [
+        "mouvements"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "National Championship",
+        "National Championships"
+      ],
+      "preferred": [
+        "Championnat National",
+        "Championnats Nationaux"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "newcomer",
+        "newcomers",
+        "first-timer",
+        "first-timers"
+      ],
+      "preferred": [
+        "nouveau venu",
+        "nouveaux venus"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Non-Competing Registrations"
+      ],
+      "preferred": [
+        "Inscriptions hors compétition"
+      ],
+      "forbidden": [],
+      "note": "Locales utilise aussi « Inscriptions de non compétiteurs »."
+    },
+    {
+      "source": [
+        "official events"
+      ],
+      "preferred": [
+        "épreuves officielles"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 9b."
+    },
+    {
+      "source": [
+        "on-site registration",
+        "on the spot registrations"
+      ],
+      "preferred": [
+        "inscription sur place",
+        "inscriptions sur place"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "organization team",
+        "organization teams"
+      ],
+      "preferred": [
+        "équipe organisatrice",
+        "équipes organisatrices"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "organizer",
+        "organizers",
+        "Organizer(s)"
+      ],
+      "preferred": [
+        "organisateur",
+        "organisateurs",
+        "organisateur·s"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Outer Block Turn Metric",
+        "OBTM"
+      ],
+      "preferred": [
+        "Outer Block Turn Metric",
+        "OBTM"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 12a5, non traduit (« la métrique OBTM »)."
+    },
+    {
+      "source": [
+        "Pending Registrations"
+      ],
+      "preferred": [
+        "Inscriptions en suspens"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "personal record",
+        "personal records"
+      ],
+      "preferred": [
+        "record personnel",
+        "records personnels"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "podium",
+        "podiums"
+      ],
+      "preferred": [
+        "podium",
+        "podiums"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "puzzle",
+        "puzzles"
+      ],
+      "preferred": [
+        "puzzle",
+        "puzzles",
+        "casse-tête",
+        "casse-têtes"
+      ],
+      "forbidden": [],
+      "note": "Locales fr: « puzzle » (13 occurrences dans 10 messages, FAQ et formulaires) ; « casse-tête » dans la page About (7 dans 4 messages) et le Règlement. Les deux sont acceptés."
+    },
+    {
+      "source": [
+        "puzzle cover"
+      ],
+      "preferred": [
+        "cache du casse-tête"
+      ],
+      "forbidden": [],
+      "note": "Regulations: B2c."
+    },
+    {
+      "source": [
+        "puzzle defect",
+        "puzzle defects"
+      ],
+      "preferred": [
+        "défaut de casse-tête",
+        "défauts de casse-tête"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 5d."
+    },
+    {
+      "source": [
+        "puzzle state"
+      ],
+      "preferred": [
+        "état du casse-tête"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 12i+."
+    },
+    {
+      "source": [
+        "Pyraminx"
+      ],
+      "preferred": [
+        "Pyraminx"
+      ],
+      "forbidden": [],
+      "note": "Nom propre, non traduit."
+    },
+    {
+      "source": [
+        "qualification",
+        "qualifications"
+      ],
+      "preferred": [
+        "qualification",
+        "qualifications"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "qualification round"
+      ],
+      "preferred": [
+        "tour de qualification"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "qualification times"
+      ],
+      "preferred": [
+        "temps de qualification"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Quarterfinal Stage"
+      ],
+      "preferred": [
+        "phase Quarts de finale"
+      ],
+      "forbidden": [],
+      "note": "Regulations: I2."
+    },
+    {
+      "source": [
+        "random state"
+      ],
+      "preferred": [
+        "état aléatoire"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 4b3."
+    },
+    {
+      "source": [
+        "ranking",
+        "rankings"
+      ],
+      "preferred": [
+        "classement",
+        "classements"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "refund",
+        "refunds"
+      ],
+      "preferred": [
+        "remboursement",
+        "remboursements"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Regional Delegate",
+        "Regional Delegates"
+      ],
+      "preferred": [
+        "Délégué Régional",
+        "Délégués Régionaux"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Regional Organizations"
+      ],
+      "preferred": [
+        "Organisations Régionales"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "regional record",
+        "regional records"
+      ],
+      "preferred": [
+        "record régional",
+        "records régionaux"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 11f1a."
+    },
+    {
+      "source": [
+        "registration",
+        "registrations"
+      ],
+      "preferred": [
+        "inscription",
+        "inscriptions"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "registration close"
+      ],
+      "preferred": [
+        "fermeture des inscriptions"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "registration fee",
+        "registration fees"
+      ],
+      "preferred": [
+        "frais d'inscription"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "registration open"
+      ],
+      "preferred": [
+        "ouverture des inscriptions"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "registration page"
+      ],
+      "preferred": [
+        "page d'inscription"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "registration period"
+      ],
+      "preferred": [
+        "période d'inscription"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "registration requirements"
+      ],
+      "preferred": [
+        "conditions d'inscription"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Rejected Registrations"
+      ],
+      "preferred": [
+        "Inscriptions rejetées"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "rotations"
+      ],
+      "preferred": [
+        "rotations"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 12a4."
+    },
+    {
+      "source": [
+        "round",
+        "rounds"
+      ],
+      "preferred": [
+        "tour",
+        "tours"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Rubik's Cube"
+      ],
+      "preferred": [
+        "Rubik's Cube"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "schedule",
+        "schedules"
+      ],
+      "preferred": [
+        "planning",
+        "plannings"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "score taker",
+        "score takers"
+      ],
+      "preferred": [
+        "saisisseur de résultats",
+        "saisisseurs de résultats"
+      ],
+      "forbidden": [],
+      "note": "Choix de relecture. Le Règlement (1g) dit « teneur de scores »."
+    },
+    {
+      "source": [
+        "scorecard",
+        "scorecards",
+        "score sheet",
+        "score sheets"
+      ],
+      "preferred": [
+        "feuille de score",
+        "feuilles de score"
+      ],
+      "forbidden": [],
+      "note": "Locales, Regulations."
+    },
+    {
+      "source": [
+        "scramble",
+        "scrambles"
+      ],
+      "preferred": [
+        "mélange",
+        "mélanges"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "scramble sequence",
+        "scramble sequences"
+      ],
+      "preferred": [
+        "séquence de mélange",
+        "séquences de mélange"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 4a."
+    },
+    {
+      "source": [
+        "scrambler",
+        "scramblers"
+      ],
+      "preferred": [
+        "mélangeur",
+        "mélangeurs"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 1f. Pour le logiciel : « générateur de mélanges »."
+    },
+    {
+      "source": [
+        "scrambling orientation"
+      ],
+      "preferred": [
+        "orientation lors des mélanges"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 4d."
+    },
+    {
+      "source": [
+        "Second round"
+      ],
+      "preferred": [
+        "Deuxième tour"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Semi Final"
+      ],
+      "preferred": [
+        "Demi-finale"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Semifinal Stage"
+      ],
+      "preferred": [
+        "phase Demi-finale"
+      ],
+      "forbidden": [],
+      "note": "Regulations: I2."
+    },
+    {
+      "source": [
+        "Senior Delegate",
+        "Senior Delegates"
+      ],
+      "preferred": [
+        "Délégué Senior",
+        "Délégués Seniors"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Senior Member"
+      ],
+      "preferred": [
+        "Membre expérimenté"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "Single"
+      ],
+      "preferred": [
+        "Single"
+      ],
+      "forbidden": [],
+      "note": "Locales: type de résultat, non traduit."
+    },
+    {
+      "source": [
+        "Skewb"
+      ],
+      "preferred": [
+        "Skewb"
+      ],
+      "forbidden": [],
+      "note": "Nom propre, non traduit."
+    },
+    {
+      "source": [
+        "solve",
+        "solves",
+        "single solve"
+      ],
+      "preferred": [
+        "résolution",
+        "résolutions"
+      ],
+      "forbidden": [],
+      "note": "Locales traduit parfois « Solves » par « Essais »."
+    },
+    {
+      "source": [
+        "solved state"
+      ],
+      "preferred": [
+        "état résolu"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 10i."
+    },
+    {
+      "source": [
+        "solving station",
+        "solving stations"
+      ],
+      "preferred": [
+        "station de résolution",
+        "stations de résolution"
+      ],
+      "forbidden": [],
+      "note": "Choix de relecture. Le Règlement (7f) dit « poste de résolution »."
+    },
+    {
+      "source": [
+        "speedsolving timer"
+      ],
+      "preferred": [
+        "chronomètre speedsolving"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 7f1b."
+    },
+    {
+      "source": [
+        "Square-1"
+      ],
+      "preferred": [
+        "Square-1"
+      ],
+      "forbidden": [],
+      "note": "Nom propre, non traduit."
+    },
+    {
+      "source": [
+        "sticker",
+        "stickers"
+      ],
+      "preferred": [
+        "autocollant",
+        "autocollants"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 3l2, Locales. La page boutique garde « stickers »."
+    },
+    {
+      "source": [
+        "stopwatch"
+      ],
+      "preferred": [
+        "chronomètre portatif"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 7f1c."
+    },
+    {
+      "source": [
+        "Teams and Committees"
+      ],
+      "preferred": [
+        "Équipes et Comités"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "time limit",
+        "time limits"
+      ],
+      "preferred": [
+        "limite de temps",
+        "limites de temps"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "time penalty",
+        "time penalties"
+      ],
+      "preferred": [
+        "pénalité de temps",
+        "pénalités de temps"
+      ],
+      "forbidden": [],
+      "note": "Regulations: 10e3."
+    },
+    {
+      "source": [
+        "timer",
+        "timers"
+      ],
+      "preferred": [
+        "chronomètre",
+        "chronomètres"
+      ],
+      "forbidden": [],
+      "note": "Regulations"
+    },
+    {
+      "source": [
+        "TNoodle"
+      ],
+      "preferred": [
+        "TNoodle"
+      ],
+      "forbidden": [],
+      "note": "Nom propre."
+    },
+    {
+      "source": [
+        "Trainee Delegate",
+        "Trainee Delegates",
+        "WCA Trainee Delegate(s)",
+        "WCA Trainee Delegates"
+      ],
+      "preferred": [
+        "Apprenti Délégué",
+        "Apprentis Délégués",
+        "Apprenti·e Délégué·e"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "venue",
+        "venues"
+      ],
+      "preferred": [
+        "lieu",
+        "lieux",
+        "salle"
+      ],
+      "forbidden": [],
+      "note": "Locales: « Salle » dans les libellés ; Regulations: « lieu »."
+    },
+    {
+      "source": [
+        "volunteer",
+        "volunteers"
+      ],
+      "preferred": [
+        "bénévole",
+        "bénévoles"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "waiting list"
+      ],
+      "preferred": [
+        "liste d'attente"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Appeals Committee"
+      ],
+      "preferred": [
+        "Comité d'appel de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales. Libellé : « Comité d'appels »."
+    },
+    {
+      "source": [
+        "WCA Archive Team"
+      ],
+      "preferred": [
+        "Équipe des archives de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Board of Directors",
+        "WCA Board",
+        "Board of Directors"
+      ],
+      "preferred": [
+        "Conseil d'administration de la WCA",
+        "Conseil d'administration"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Chair"
+      ],
+      "preferred": [
+        "Président·e de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Chief Operating Officer"
+      ],
+      "preferred": [
+        "Directeur des opérations de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Communication Team"
+      ],
+      "preferred": [
+        "Équipe communication de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Competition Announcement Team",
+        "Competition Announcement Team"
+      ],
+      "preferred": [
+        "Équipe des annonces de compétitions de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Executive Assistants Team"
+      ],
+      "preferred": [
+        "Équipe des assistants exécutifs de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Executive Director"
+      ],
+      "preferred": [
+        "Directeur·rice Exécutif·ve de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Financial Committee"
+      ],
+      "preferred": [
+        "Comité financier de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA ID"
+      ],
+      "preferred": [
+        "ID WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Integrity Committee"
+      ],
+      "preferred": [
+        "Comité d'intégrité de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Live"
+      ],
+      "preferred": [
+        "WCA Live"
+      ],
+      "forbidden": [],
+      "note": "Nom propre."
+    },
+    {
+      "source": [
+        "WCA Major Championship Team"
+      ],
+      "preferred": [
+        "Équipe des championnats majeurs de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales. La description dit « grands championnats »."
+    },
+    {
+      "source": [
+        "WCA Marketing Team"
+      ],
+      "preferred": [
+        "Équipe marketing de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Officers",
+        "Officers"
+      ],
+      "preferred": [
+        "Dirigeants de la WCA",
+        "Dirigeants"
+      ],
+      "forbidden": [],
+      "note": "Locales: « Responsables » dans « Officers & Board »."
+    },
+    {
+      "source": [
+        "WCA Quality Assurance Committee",
+        "Quality Assurance Committee"
+      ],
+      "preferred": [
+        "Comité d'assurance qualité de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Regulations",
+        "Regulations"
+      ],
+      "preferred": [
+        "Règlement de la WCA",
+        "Règlement WCA",
+        "Règlement"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Regulations Committee",
+        "Regulations Committee"
+      ],
+      "preferred": [
+        "Comité réglementaire de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales. La description dit « comité des règlements »."
+    },
+    {
+      "source": [
+        "WCA Results Team"
+      ],
+      "preferred": [
+        "Équipe des résultats de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Secretary"
+      ],
+      "preferred": [
+        "Secrétaire de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Software Team"
+      ],
+      "preferred": [
+        "Équipe logicielle de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCA Sports Organization Team"
+      ],
+      "preferred": [
+        "Équipe de reconnaissance en tant que Sport de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales: page->teams_committees_councils->groups_name->wsot. La description dit « équipe de l'organisation sportive »."
+    },
+    {
+      "source": [
+        "WCA Treasurer"
+      ],
+      "preferred": [
+        "Trésorier·ère de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales écrit « Tresorier·ère » (accent manquant)."
+    },
+    {
+      "source": [
+        "WCA Vice-Chair"
+      ],
+      "preferred": [
+        "Vice-président·e de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "WCIF"
+      ],
+      "preferred": [
+        "WCIF"
+      ],
+      "forbidden": [],
+      "note": "Format, non traduit."
+    },
+    {
+      "source": [
+        "World Championship",
+        "World Championships"
+      ],
+      "preferred": [
+        "Championnat du Monde",
+        "Championnats du Monde"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    },
+    {
+      "source": [
+        "World Cube Association",
+        "WCA"
+      ],
+      "preferred": [
+        "World Cube Association",
+        "WCA"
+      ],
+      "forbidden": [],
+      "note": "Nom propre."
+    },
+    {
+      "source": [
+        "world record",
+        "world records"
+      ],
+      "preferred": [
+        "record du monde",
+        "records du monde"
+      ],
+      "forbidden": [],
+      "note": "Locales"
+    }
+  ]
+}

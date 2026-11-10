@@ -14,6 +14,7 @@ try{
  assert(await evaluate("!document.getElementById('demo-banner').hidden"),'Demo has a visible label');
  assert(await evaluate("formatTime(new Date(2026,0,1,23,7,9).getTime())==='23:07:09'"),'Stage timestamps use 24 hours');
  assert(await evaluate("formatDateTime(new Date(2026,0,1,23,7,9)).includes('23:07')"),'Session timestamps use 24 hours');
+ await wait("!document.getElementById('sync').disabled");
  await click('sync');
  await wait("syncing && Number(document.getElementById('sync-progress').value)>0 && Number(document.getElementById('sync-progress').value)<7");
  assert(await evaluate("!document.getElementById('sync-indicator').hidden && document.querySelectorAll('#sync-stages li').length===7"),'Real intermediate stages arrive before completion');
