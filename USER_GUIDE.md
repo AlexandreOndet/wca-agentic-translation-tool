@@ -10,7 +10,7 @@ Open a terminal in the project folder and run:
 .venv/bin/python run.py
 ```
 
-This setup supports Linux and Python 3.10 or later. Windows and macOS have not been validated. For the first run, set up the environment and start the server with:
+This setup supports Linux and Python 3.12 or later. Windows and macOS have not been validated. For the first run, set up the environment and start the server with:
 
 ```bash
 python3 -m venv .venv
@@ -36,6 +36,10 @@ If several people translate your language, agree on one shared reference with yo
 UI edits are personal to your local data folder. To contribute your team's reviewed glossary, click **Export glossary** and share the exported file with the tool maintainer for inclusion as a repository default. Another translator can load an agreed file using **Import glossary**, which replaces their complete configured catalog for that language; export a backup first. Changes to the local glossary are shared with Weblate through a separate manual process.
 
 Personal catalogs take precedence over repository defaults, so review updates with your team when adopting a newer shared version. The [README](README.md#language-glossaries) documents the file format, validation and direct import.
+
+## Translate from another language (for example fr → fr-CA)
+
+If your language is adapted from another one rather than from English, choose it in **More options → Reference language** before syncing. The choice is remembered per target language, and the default **None** keeps the usual English workflow (fr-CA starts with French selected). Upload the reference language's translations to Weblate first: the sync downloads them read-only. Each entry then shows the reference text, with the words your glossary wants changed highlighted (for example *Petit-déjeuner → Déjeuner*). **Use … as proposals** copies the reference into the proposals so you only edit what differs; the diff is shown against the reference. AI and chat proposals also receive the reference; if one is not to your taste, **Use …** (shortcut U) puts the reference in the editor instead. Nothing is approved automatically.
 
 ## In the application
 

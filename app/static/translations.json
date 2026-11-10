@@ -558,5 +558,18 @@
   "Choose a Claude model.": "Elegí un modelo de Claude.",
   "Claude Code was not found. Install Claude Code and sign in with: claude auth login": "No se encontró Claude Code. Instalalo e iniciá sesión con: claude auth login",
   "Could not start Claude Code. Install Claude Code and sign in with: claude auth login": "No se pudo iniciar Claude Code. Instalalo e iniciá sesión con: claude auth login",
-  "Claude Code did not answer in time. Validated batches can be resumed.": "Claude Code no respondió a tiempo. Los lotes validados se pueden retomar."
+  "Claude Code did not answer in time. Validated batches can be resumed.": "Claude Code no respondió a tiempo. Los lotes validados se pueden retomar.",
+  "Reference language": "Idioma de referencia",
+  "None · translate from English": "Ninguno · traducir desde el inglés",
+  "Use reference as proposals": "Usar la referencia como propuestas",
+  "Use {0} as proposals": "Usar {0} como propuestas",
+  "Reference · {0}": "Referencia · {0}",
+  "Glossary: {0}": "Glosario: {0}",
+  "Glossary changes from the reference:\n{0}": "Cambios de glosario respecto de la referencia:\n{0}",
+  "Reference languages are not available in the demo.": "Los idiomas de referencia no están disponibles en la demo.",
+  "Choose a reference language other than English and the target language.": "Elegí un idioma de referencia distinto del inglés y del idioma de destino.",
+  "Some entries have no reference translation. Translate them with AI or from chat instead.": "Algunas entradas no tienen traducción de referencia. Traducilas con IA o desde el chat.",
+  "proposals.json already exists in this session. Load it, or create another session.": "proposals.json ya existe en esta sesión. Cargalo o creá otra sesión.",
+  "AI translation already started in this session. Continue it, or create another session.": "La traducción con IA ya empezó en esta sesión. Continuala o creá otra sesión.",
+  "Use {0}": "Usar {0}"
 }

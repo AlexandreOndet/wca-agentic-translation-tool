@@ -47,7 +47,7 @@ def compact_entry(item):
     result = {'key': item['key'], 'source': item['source'], 'target_count': len(item['original'])}
     if item.get('context'):
         result['context'] = context_hint(item['context'])
-    for name in ('original', 'plural_forms', 'previous_source', 'previous_translation', 'comment', 'translator_comment'):
+    for name in ('original', 'plural_forms', 'previous_source', 'previous_translation', 'comment', 'translator_comment', 'reference', 'reference_flags'):
         value = item.get(name)
         if name == 'previous_source' and value == item['source']:
             continue

@@ -204,7 +204,7 @@ def make_handler(controller, connections=None, auth=None, translators=None):
             finally:
                 operation_lock.release()
 
-        def stream_sync(self, component, language='es_419', provider='manual', model='', translate_only=False):
+        def stream_sync(self, component, language='es_419', provider='manual', model='', translate_only=False, reference=None):
             nonlocal cached_state
             cached_state = snapshot()
             self.send_response(200)
@@ -228,7 +228,7 @@ def make_handler(controller, connections=None, auth=None, translators=None):
             try:
                 emit({'stage': 0, 'total': 7, 'message': 'Starting synchronization'})
                 if not translate_only:
-                    controller.sync(component, progress=emit, language=language)
+                    controller.sync(component, progress=emit, language=language, reference=reference)
                 if (translate_only or provider != 'manual') and controller.work and controller.work['entries']:
                     generate_proposals(controller, translators, provider, model, progress=emit)
                 cached_state = snapshot()
@@ -280,18 +280,20 @@ def make_handler(controller, connections=None, auth=None, translators=None):
                         auth.disconnect()
                         self.json_response({'chatgpt': auth.status()})
                     return
-                if path in ('/api/sync', '/api/open', '/api/load-proposals', '/api/generate'):
+                if path in ('/api/sync', '/api/open', '/api/load-proposals', '/api/reference-proposals', '/api/generate'):
                     if not isinstance(controller, Workspace):
                         raise ReviewError('This operation requires a workspace session.')
                     controller.assert_session(data)
                     if path == '/api/sync':
-                        self.stream_sync(data.get('component', 'locales'), data.get('language', 'es_419'), data.get('provider', 'manual'), data.get('model', ''))
+                        self.stream_sync(data.get('component', 'locales'), data.get('language', 'es_419'), data.get('provider', 'manual'), data.get('model', ''), reference=data.get('reference'))
                         return
                     elif path == '/api/generate':
                         self.stream_sync(controller.manifest.get('component', 'locales') if controller.manifest else 'locales', provider=data.get('provider', 'manual'), model=data.get('model', ''), translate_only=True)
                         return
                     elif path == '/api/open':
                         controller.open(data['target_id'])
+                    elif path == '/api/reference-proposals':
+                        controller.reference_proposals()
                     else:
                         controller.load_proposals()
                     self.json_response(snapshot())

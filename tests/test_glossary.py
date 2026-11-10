@@ -7,7 +7,7 @@ import unittest
 import polib
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'app'))
 from core import Review
-from glossary import contains, source_matches, variants
+from glossary import contains, reference_flags, source_matches, variants
 from translation import relevant_glossary
 from workspace import glossary_terms
 
@@ -120,3 +120,14 @@ class GlossaryTests(unittest.TestCase):
         glossary = [term('world championship', 'campeonato mundial'), term('championship podium', 'podio')]
         warnings = self.terminology_report('world championship podium', 'Podio', glossary)
         self.assertEqual([w['code'] for w in warnings], ['preferred_term'])
+
+
+class ReferenceFlagTests(unittest.TestCase):
+    def test_divergent_and_forbidden_terms_are_flagged_shared_ones_are_not(self):
+        fr = [term('Breakfast', 'Petit-déjeuner'), term('Cube', 'Cube')]
+        fr_ca = [term('Breakfast', 'Déjeuner'), term('Cube', 'Cube'), term('email', 'courriel', ['e-mail'])]
+        flags = reference_flags('Breakfast, cube and email', 'Petit-déjeuner, cube et e-mail', fr, fr_ca)
+        self.assertEqual([(f['term'], f['replacement']) for f in flags], [('Petit-déjeuner', ['Déjeuner']), ('e-mail', ['courriel'])])
+
+    def test_terms_absent_from_the_english_source_are_ignored(self):
+        self.assertEqual(reference_flags('Lunch', 'Petit-déjeuner', [term('Breakfast', 'Petit-déjeuner')], [term('Breakfast', 'Déjeuner')]), [])

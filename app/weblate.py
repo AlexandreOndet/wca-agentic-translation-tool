@@ -230,17 +230,26 @@ class Client:
         return str(po)
 
     def download(self):
+        return self._download(self.language)
+
+    def download_reference(self, language):
+        result = self._download(language)
+        reference = {'target': result['target'], 'glossary': result['glossary'], 'metadata': result['metadata'].get(language, {})}
+        if result.get('yaml_mapping') is not None:
+            reference['yaml_mapping'] = result['yaml_mapping']
+        return reference
+
+    def _download(self, language):
         for attempt in range(2):
             try:
-                return self._download_once()
+                return self._download_once(language)
             except RemoteChanged:
                 if attempt:
                     raise ReviewError('Weblate kept changing during both downloads. The local session was not updated; wait a moment and sync again.') from None
                 self.notify(1, 'Weblate changed during download. Retrying with a new base (2/2)')
 
-    def _download_once(self):
+    def _download_once(self, target_language):
         self.notify(1, 'Checking English and selected language status')
-        target_language = self.language
         before = {lang: self.metadata(lang) for lang in ('en', target_language)}
         warnings = []
         native = None

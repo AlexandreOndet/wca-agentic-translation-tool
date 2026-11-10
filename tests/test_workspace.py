@@ -250,6 +250,140 @@ class WorkspaceTests(unittest.TestCase):
         self.assertTrue(any('forbidden' in item['message'] for item in result['warnings']))
         self.assertFalse(result['ok'])
 
+    def reference_sync(self, reference_target):
+        glossaries=self.root/'data'/'glossaries';glossaries.mkdir(parents=True,exist_ok=True)
+        for code,word in (('fr','Bonjour'),('es_419','Hola')):
+            write_json(glossaries/f'{code}.json',{'version':1,'language':code,'entries':[{'source':['Hello'],'preferred':[word],'forbidden':[]}]})
+        self.client.download.return_value=downloads()
+        self.client.download_reference.return_value={'target':reference_target,'glossary':None,'metadata':{'language':{'name':'French'}}}
+        return self.workspace.sync(reference='fr')
+
+    def test_reference_language_adds_text_flags_and_proposals(self):
+        state=self.reference_sync(fixture('Bonjour %s').replace('#, fuzzy\n',''))
+        self.client.download_reference.assert_called_once_with('fr')
+        item=self.workspace.work['entries'][0]
+        self.assertEqual(item['reference'],['Bonjour %s'])
+        self.assertEqual(item['reference_flags'],[{'term':'Bonjour','replacement':['Hola'],'source':['Hello']}])
+        self.assertEqual(state['workspace']['reference'],{'language':'fr','language_name':'French'})
+        self.assertEqual(state['workspace']['reference_count'],1)
+        self.assertIn('reference_flags',state['workspace']['prompt'])
+        self.assertTrue((self.workspace.directory(self.workspace.active_id)/'reference.po').exists())
+        state=self.workspace.reference_proposals()
+        entry=state['entries'][0]
+        self.assertEqual(entry['proposed'],['Bonjour %s']);self.assertIn('Bonjour → Hola',entry['note'])
+        self.assertEqual(entry['decision']['status'],'pending')
+        with self.assertRaises(ReviewError):self.workspace.reference_proposals()
+
+    def test_reference_proposals_keep_started_ai_translation(self):
+        self.reference_sync(fixture('Bonjour %s').replace('#, fuzzy\n',''))
+        folder=self.workspace.directory(self.workspace.active_id)
+        write_json(folder/'generation.json',{'entries':{'k':['Hola']}})
+        with self.assertRaisesRegex(ReviewError,'AI translation already started'):self.workspace.reference_proposals()
+        self.assertFalse((folder/'proposals.json').exists())
+
+    def test_fuzzy_reference_is_not_used(self):
+        state=self.reference_sync(fixture('Bonjour %s'))
+        self.assertNotIn('reference',self.workspace.work['entries'][0])
+        self.assertEqual(state['workspace']['reference_count'],0)
+        with self.assertRaises(ReviewError):self.workspace.reference_proposals()
+
+    def test_without_reference_the_session_is_unchanged(self):
+        state=self.sync(downloads())
+        self.client.download_reference.assert_not_called()
+        self.assertNotIn('reference',self.workspace.work['entries'][0])
+        self.assertIsNone(state['workspace']['reference'])
+        self.assertNotIn('reference_flags',state['workspace']['prompt'])
+
+    def test_reference_must_differ_from_target_and_english(self):
+        for code in ('en','es_419'):
+            with self.assertRaises(ReviewError):self.workspace.sync(reference=code)
+        self.client.download.assert_not_called()
+
+    def test_download_reference_fetches_reference_language(self):
+        client=Client(env_path=self.root/'.env');client.language='fr_ca'
+        seen=[]
+        with patch.object(Client,'_download_once',lambda c,lang:seen.append(lang) or {'target':'po','glossary':None,'metadata':{'fr':{'revision':'r'}}}):
+            self.assertEqual(client.download_reference('fr'),{'target':'po','glossary':None,'metadata':{'revision':'r'}})
+        self.assertEqual((seen,client.language),(['fr'],'fr_ca'))
+
+    def sync_plural_reference(self, target_names, reference_names, include_mapping=True, target_language='ru'):
+        from locales import convert_units
+        source = ['One cube', '%{count} cubes']
+        def download(language, names, values):
+            native = language + ':\n  count:\n' + ''.join(f'    {name}: {json.dumps(value)}\n' for name, value in zip(names, values))
+            english, target, mapping = convert_units([{'context': 'count', 'source': source, 'target': values}], native, language)
+            return dict(downloads(target, english), native_yaml=native, yaml_mapping=mapping)
+        target = download(target_language, target_names, [''] * len(target_names))
+        reference = download('fr', reference_names, ['Un cube'] + ['%{count} ' + name for name in reference_names[1:]])
+        self.client.download.return_value = target
+        self.client.download_reference.return_value = {'target': reference['target'], 'glossary': None, 'metadata': {}}
+        if include_mapping:
+            self.client.download_reference.return_value['yaml_mapping'] = reference['yaml_mapping']
+        return self.workspace.sync('locales', language=target_language, reference='fr')
+
+    def test_locales_reference_rejects_equal_counts_with_different_plural_names(self):
+        state = self.sync_plural_reference(['one', 'few', 'many'], ['one', 'many', 'other'])
+        self.assertEqual(state['workspace']['reference_count'], 0)
+        self.assertNotIn('reference', self.workspace.work['entries'][0])
+        with self.assertRaisesRegex(ReviewError, 'no reference translation'):
+            self.workspace.reference_proposals()
+        self.assertFalse((self.workspace.directory(self.workspace.active_id) / 'proposals.json').exists())
+
+    def test_locales_reference_copies_matching_named_plural_forms(self):
+        names = ['one', 'many', 'other']
+        state = self.sync_plural_reference(names, names, target_language='fr_ca')
+        self.assertEqual(state['workspace']['reference_count'], 1)
+        state = self.workspace.reference_proposals()
+        self.assertEqual(state['entries'][0]['proposed'], ['Un cube', '%{count} many', '%{count} other'])
+        self.assertEqual(state['counts']['accepted'], 0)
+        entry_key = state['entries'][0]['key']
+        self.workspace.review.decide(entry_key, {'status': 'accepted'}, state['revision'])
+        result = self.workspace.review.export(self.workspace.review.document['revision'], mode='changes', confirm_warnings=True)
+        self.assertTrue(result['ok'])
+        from locales import yaml_load
+        _, exported, _ = yaml_load(result['content'], 'fr_ca')
+        self.assertEqual(dict(exported['fr_ca']['count']), {'one': 'Un cube', 'many': '%{count} many', 'other': '%{count} other'})
+
+    def test_locales_reference_requires_native_plural_mapping(self):
+        state = self.sync_plural_reference(['one', 'many', 'other'], ['one', 'many', 'other'], include_mapping=False, target_language='fr_ca')
+        self.assertEqual(state['workspace']['reference_count'], 0)
+
+    def test_po_reference_requires_matching_plural_rules_but_keeps_singulars(self):
+        self.client.download.return_value = downloads(fixture(plural={0: '', 1: ''}))
+        reference = fixture('Bonjour %s', {0: 'Un cube', 1: 'Des cubes'}).replace('#, fuzzy\n', '')
+        reference = reference.replace('plural=(n != 1)', 'plural=(n > 1)')
+        self.client.download_reference.return_value = {'target': reference, 'glossary': None, 'metadata': {}}
+        self.workspace.sync(reference='fr')
+        entries = {item['context']: item for item in self.workspace.work['entries']}
+        self.assertEqual(entries['greeting']['reference'], ['Bonjour %s'])
+        self.assertNotIn('reference', entries['plural'])
+
+    def test_po_reference_allows_matching_plural_rules_with_different_spacing(self):
+        self.client.download.return_value = downloads(fixture(plural={0: '', 1: ''}))
+        reference = fixture('Bonjour %s', {0: 'Un cube', 1: 'Des cubes'}).replace('#, fuzzy\n', '')
+        reference = reference.replace('plural=(n != 1)', 'plural = (n!=1)')
+        self.client.download_reference.return_value = {'target': reference, 'glossary': None, 'metadata': {}}
+        self.workspace.sync(reference='fr')
+        entry = next(item for item in self.workspace.work['entries'] if item['context'] == 'plural')
+        self.assertEqual(entry['reference'], ['Un cube', 'Des cubes'])
+
+    def test_po_reference_rejects_missing_plural_expression(self):
+        target = Catalog(fixture(plural={0: '', 1: ''})).po
+        reference = Catalog(fixture('Bonjour %s', {0: 'Un cube', 1: 'Des cubes'})).po
+        target.metadata['Plural-Forms'] = reference.metadata['Plural-Forms'] = 'nplurals=2;'
+        self.client.download.return_value = downloads(str(target))
+        self.client.download_reference.return_value = {'target': str(reference), 'glossary': None, 'metadata': {}}
+        self.workspace.sync(reference='fr')
+        entry = next(item for item in self.workspace.work['entries'] if item['context'] == 'plural')
+        self.assertNotIn('reference', entry)
+
+    def test_download_reference_preserves_native_plural_mapping(self):
+        client = Client(env_path=self.root / '.env')
+        mapping = {'entry': {'plural_forms': ['one', 'many', 'other']}}
+        payload = {'target': 'po', 'glossary': None, 'metadata': {}, 'yaml_mapping': mapping}
+        with patch.object(Client, '_download_once', return_value=payload):
+            self.assertEqual(client.download_reference('fr')['yaml_mapping'], mapping)
+
     def test_modified_snapshot_rejected(self):
         self.sync(downloads());folder=self.workspace.directory(self.workspace.active_id)
         (folder/'base.po').write_text(fixture('Cambio %s'))

@@ -18,6 +18,7 @@
     <label class="model-control">AI<select id="ai-provider"><option value="chatgpt">ChatGPT</option><option value="claude-code">Claude Code · local</option></select></label>
     <label class="model-control">Model<select id="model"><option value="">Connect ChatGPT</option></select></label>
     <button id="generate" class="primary" hidden>Continue translation</button>
+    <button id="reference-proposals" hidden>Use reference as proposals</button>
   </div>
   <p id="catalog-status" class="muted" role="status" aria-live="polite"></p>
   <p id="session-glossary" class="muted"></p>
@@ -26,6 +27,7 @@
   <p id="workspace-warnings" class="workspace-warnings"></p>
   <details id="more-options" class="more-options"><summary>More options</summary>
     <div class="session-controls"><label for="sessions">Resume a previous review</label><select id="sessions"></select><button id="open-session">Open</button></div>
+    <label class="manual-option">Reference language<select id="reference"><option value="">None · translate from English</option></select></label>
     <label class="manual-option"><input id="manual-mode" type="checkbox"> Use an external agent · local mode</label>
     <div id="manual-tools" hidden><div class="actions"><button id="copy-prompt">Copy prompt</button><button id="load-proposals">Load proposals</button></div>
       <details id="prompt-details"><summary>Continue in the project’s chat</summary><p>Paste this prompt into this project’s chat. Then return and load the proposals.</p><textarea id="agent-prompt" readonly aria-label="Agent prompt"></textarea><p id="session-folder" class="muted"></p></details>
@@ -49,10 +51,11 @@
   <article id="review" hidden>
     <div class="entry-heading"><div><span id="position" class="eyebrow"></span><h2 id="context"></h2></div><span id="status" class="badge"></span></div>
     <section class="source-panel"><h3>English source</h3><div id="source"></div></section>
+    <section id="reference-panel" class="source-panel" hidden><h3 id="reference-title"></h3><div id="reference-text"></div></section>
     <div id="forms"></div>
     <section id="conflict-panel" class="conflict" hidden><h3>Changed in Weblate</h3><p>This translation differs from the comparison’s original. Choose which version to keep; unresolved conflicts block export.</p><div id="current"></div><div class="actions"><button id="keep-current">Keep recent version</button><button id="use-chosen">Use my review decision</button></div><p id="resolution"></p></section>
     <details class="metadata"><summary>Context, comments and references</summary><pre id="metadata"></pre></details>
-    <div class="decision-bar"><div class="actions"><button id="accept" class="primary">Accept <kbd>A</kbd></button><button id="reject">Reject <kbd>R</kbd></button><button id="edit">Edit <kbd>E</kbd></button><button id="pending" class="quiet">Leave pending</button></div><p id="decision-note"></p></div>
+    <div class="decision-bar"><div class="actions"><button id="accept" class="primary">Accept <kbd>A</kbd></button><button id="reject">Reject <kbd>R</kbd></button><button id="edit">Edit <kbd>E</kbd></button><button id="use-reference" hidden></button><button id="pending" class="quiet">Leave pending</button></div><p id="decision-note"></p></div>
     <div class="navigation"><button id="prev">← Previous</button><span>← / → navigate · A accept · R reject · E edit · Ctrl+Enter save edit</span><button id="next">Next →</button></div>
   </article>
 </main>

@@ -372,9 +372,8 @@ class Review:
                 pattern = FORMAT_PLACEHOLDER if any(flag in self.original.by_key[entry_key].flags for flag in ('c-format', 'python-format', 'objc-format')) else PLACEHOLDER
                 if tokens(pattern, reference) != tokens(pattern, value):
                     errors.append(self.issue('placeholders', entry_key, f'{prefix}: placeholders differ from the translation reference.', i, reference, value, True))
-                if tokens(TECHNICAL, old) != tokens(TECHNICAL, value):
+                if tokens(TECHNICAL, value) not in (tokens(TECHNICAL, source), tokens(TECHNICAL, old) if old.strip() else None):
                     warnings.append(self.issue('technical', entry_key, f'{prefix}: links, tags or technical references changed; check that this is intentional.', i, old, value, True))
-                source = self.form_sources[entry_key][i] if entry_key in self.form_sources else (self.original.by_key[entry_key].msgid if i == 0 else self.original.by_key[entry_key].msgid_plural)
                 if tokens(pattern, reference) == tokens(pattern, value) and tokens(pattern, source) != tokens(pattern, value):
                     warnings.append(self.issue('source_placeholders', entry_key, f'{prefix}: placeholders do not match the English source (this may be a pre-existing issue).', i, source, value, True))
                 seen_forbidden = set()

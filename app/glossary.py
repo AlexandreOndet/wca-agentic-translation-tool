@@ -72,3 +72,19 @@ def term_matches(glossary, text):
             for start, end in spans)
         result.append((term, uncovered))
     return result
+
+
+def reference_flags(english, reference, reference_terms, target_terms):
+    """Words in the reference translation that the target glossary wants changed."""
+    flags = {}
+    for term, _ in term_matches(target_terms, english):
+        sources = {s.casefold() for s in term['source']}
+        keep = {w.casefold() for w in term['preferred']}
+        wrong = list(term['forbidden'])
+        for other in reference_terms:
+            if sources & {s.casefold() for s in other['source']} and {w.casefold() for w in other['preferred']} != keep:
+                wrong += [w for w in other['preferred'] if w.casefold() not in keep]
+        for word in wrong:
+            if word.casefold() not in flags and contains(reference, [word]):
+                flags[word.casefold()] = {'term': word, 'replacement': term['preferred'], 'source': term['source']}
+    return list(flags.values())
