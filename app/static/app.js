@@ -5,6 +5,7 @@ let state, selected, editing = false, dirty = false, timer, chain = Promise.reso
 let draftVersion = 0;
 let draftRecovery = null, reloading = false;
 let syncing=false, syncStarted=0, syncTimer, connectionState;
+let nextStepSession=null;
 let activeStageLabels, projectStatus=null, syncFailed=false;
 const syncLabels=["Remote status","Files and units","Validation","Consistency","Glossary","Local session","Ready"];
 let lastSyncEvent, lastError;
@@ -22,7 +23,7 @@ function syncStage(event) {
 }
 function syncStart() {
   $('error').hidden=true;
-  syncing=true;activeStageLabels=null;syncStarted=Date.now();$('sync-indicator').classList.remove('failed');
+  syncing=true;hideNextStep();activeStageLabels=null;syncStarted=Date.now();$('sync-indicator').classList.remove('failed');
   const tick=()=>{$('sync-elapsed').textContent=t("{0} s elapsed", Math.floor((Date.now()-syncStarted)/1000));};
   tick();syncTimer=setInterval(tick,1000);syncStage({stage:0,message:"Starting synchronization…"});
 }
@@ -111,7 +112,10 @@ function downloadedKey() {return 'wca-downloaded:'+state.workspace.active_id;}
 function downloadedRevision() {try{return localStorage.getItem(downloadedKey());}catch{return null;}}
 function nextStep() {
   const w=state.workspace, c=state.counts;
-  if(!w?.active_id || !state.entries.length || c.pending)return null;
+  if(!w?.active_id || !w.ready || nextStepSession!==w.active_id || syncing || !state.entries.length || c.pending)return null;
+  const code=value=>value.replaceAll('-','_').toLowerCase();
+  if($('component').value!==w.component || code($('language').value)!==code(w.language))return null;
+  if(stored('wca-next-step-dismissed:'+w.active_id)===String(state.revision))return null;
   const downloaded=downloadedRevision()===String(state.revision);
   return !(c.accepted+c.edited)?'empty':testSession()?(downloaded?'test-done':'test'):downloaded?'upload':'download';
 }
@@ -126,7 +130,7 @@ function showNextStep() {
     test:t("All {0} entries reviewed. Next step: download the test file. Do not upload it to Weblate.",n),
     'test-done':t("Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate."),
     download:t("All {0} entries reviewed. Next step: download the file, then upload it in Weblate.",n),
-    upload:[t("File downloaded, but Weblate does not have it yet. Last step: open Weblate, go to Files → Upload translation and pick the file."),t(UPLOAD_HOW),t("Afterwards, Sync & Translate here should no longer show the entries you accepted or edited.")].join(' '),
+    upload:[t("File downloaded. If you haven't uploaded it yet, open Weblate, go to Files → Upload translation and pick the file."),t(UPLOAD_HOW),t("After uploading, click “I uploaded it” to close this reminder, or sync to check Weblate again.")].join(' '),
   }[step];
   button.hidden=step==='empty';
   button.textContent=step==='test' || step==='download'?t("Download translation ↗"):t("Download again");
@@ -134,8 +138,15 @@ function showNextStep() {
   link.hidden=step!=='upload' || !w.weblate_url;
   link.href=w.weblate_url || '';
   link.textContent=t("Open {0} in Weblate ↗",languageName(w.language,w.language_name));
+  $('next-dismiss').textContent=t(step==='upload'?"I uploaded it":"Dismiss reminder");
 }
+function hideNextStep() {nextStepSession=null;showNextStep();}
+$('next-dismiss').onclick=()=>{
+  store('wca-next-step-dismissed:'+state.workspace.active_id,String(state.revision));
+  hideNextStep();
+};
 function focusNextStep() {
+  if($('next-step').hidden)return;
   const action=[$('next-download'),$('next-weblate')].find(el=>!el.hidden && el.classList.contains('primary'));
   if(!action)return;
   $('next-step').scrollIntoView({block:'nearest'});action.focus();
@@ -244,7 +255,7 @@ function renderEntry() {
 function render() { showProgress(); const list=renderList(); if (!list.some(e=>e.key===selected)) { selected=list[0]?.key; editing=!!current()?.decision.draft; } renderList(); renderEntry(); }
 function mutate(path, data, refresh=true) {
   saving++; $('save').textContent=t("Saving…");
-  const task=chain.then(async()=>{ state=await api(path,{...data,revision:state.revision}); if(refresh) render(); else {showProgress();renderList();} });
+  const task=chain.then(async()=>{ state=await api(path,{...data,revision:state.revision}); if(path==='/api/decision')nextStepSession=state.workspace?.active_id; if(refresh) render(); else {showProgress();renderList();} });
   chain=task.catch(()=>{}).finally(()=>{saving--;if(!saving&&!dirty) $('save').textContent=t("✓ Progress saved locally");});
   return task;
 }
@@ -436,6 +447,7 @@ $('prev').onclick=()=>act(()=>navigate(-1)); $('next').onclick=()=>act(()=>navig
 for(const id of ['search','filter']) $(id).addEventListener(id==='search'?'input':'change',()=>act(async()=>{await flush();render();}));
 async function workspaceAction(path, data={}) {
   if((path==='/api/sync' || path==='/api/generate') && catalogBusy())return;
+  hideNextStep();
   await flush();
   const isSync=path==='/api/sync' || path==='/api/generate';
   if(isSync)syncStart();
@@ -443,11 +455,12 @@ async function workspaceAction(path, data={}) {
   const buttons=['language','reference','model','manual-mode','generate','reference-proposals','component','sync','open-session','copy-prompt','load-proposals','export'];
   buttons.forEach(id=>$(id).disabled=true);
   $('workspace-detail').textContent=path==='/api/sync' ? t("Downloading the current bases from Weblate…") : t("Loading the session…");
-  try {state=await api(path,data);syncFailed=false;if(state.workspace.component)$('component').value=state.workspace.component;setLanguage(state.workspace.language,state.workspace.language_name);resume();}
+  try {state=await api(path,data);syncFailed=false;if(state.workspace.component)$('component').value=state.workspace.component;setLanguage(state.workspace.language,state.workspace.language_name);nextStepSession=state.workspace.active_id;resume();}
   catch(exc) {if(isSync){syncFailed=true;$('sync-indicator').classList.add('failed');syncStage({stage:lastSyncEvent?.stage || 0,total:lastSyncEvent?.total || 7,message:exc.message});}throw exc;}
-  finally {if(isSync){clearInterval(syncTimer);syncing=false;}buttons.forEach(id=>$(id).disabled=false);showWorkspace();if(path==='/api/sync'){ensureLanguages(true);ensureProjectStatus(true);}}
+  finally {if(isSync){clearInterval(syncTimer);syncing=false;}buttons.forEach(id=>$(id).disabled=false);showWorkspace();showNextStep();if(path==='/api/sync'){ensureLanguages(true);ensureProjectStatus(true);}}
 }
 $('sync').onclick=()=>act(async()=>{
+  hideNextStep();
   if(AI[provider()] && !canTranslate()){await refreshConnections();$('connections-dialog').showModal();return;}
   await flush();await ensureModels();
   await workspaceAction('/api/sync',{component:$('component').value,language:$('language').value,reference:$('reference').value || null,provider:provider(),model:$('model').value});
@@ -602,7 +615,7 @@ async function ensureModels() {
   });
 }
 $('language').onfocus=()=>{ensureLanguages();};
-$('language').onchange=()=>{fillReference();showWorkspaceWarnings();ensureProjectStatus();};
+$('language').onchange=()=>{hideNextStep();fillReference();showWorkspaceWarnings();ensureProjectStatus();};
 $('reference').onchange=()=>store('wca-reference:'+$('language').value,$('reference').value);
 $('model').onfocus=()=>{ensureModels();};
 $('model').onchange=()=>store('wca-model:'+provider(),$('model').value);
@@ -612,6 +625,7 @@ $('ai-provider').onchange=()=>act(async()=>{
   $('model').replaceChildren(new Option(connectLabel(),''));showAIOptions();await ensureModels();
 });
 $('component').onchange=()=>act(async()=>{
+  hideNextStep();
   const items=languageCache.get($('component').value);
   if(items)fillLanguages(items);
   else await ensureLanguages();
@@ -752,6 +766,7 @@ $('download').onclick=()=>act(async()=>{
     const result=await api('/api/export',{revision:state.revision,mode:'changes',confirm_pending:$('confirm-pending').checked,confirm_warnings:$('confirm-warnings').checked});
     if(!result.ok){exportReport={...exportReport,...result};validation(exportReport);return;}
     download(result);$('export-dialog').close();exportExpanded.clear();
+    nextStepSession=state.workspace?.active_id;
     try{localStorage.setItem(downloadedKey(),String(state.revision));}catch{}
     showNextStep();focusNextStep();
   } finally {exportBusy=false;updateDownload();}

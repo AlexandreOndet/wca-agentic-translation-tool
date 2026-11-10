@@ -58,6 +58,9 @@ class BrowserTests(unittest.TestCase):
     def test_reference_language_workflow(self):
         self.run_browser('reference')
 
+    def test_completion_reminder_lifecycle(self):
+        self.run_browser('next_step')
+
     def run_browser(self, workspace_mode):
         chrome=shutil.which('google-chrome') or shutil.which('chromium')
         node=shutil.which('node')
@@ -84,6 +87,14 @@ class BrowserTests(unittest.TestCase):
                 auth=Mock();auth.status.return_value={'active':'test-account','accounts':[{'id':'test-account','email':'test@example.org','connected':True,'can_translate':True}],'error':None}
                 fake_translator=Mock();fake_translator.models.return_value=[{'id':'test-model','name':'Test model'}]
                 fake_translator.propose.side_effect=lambda model,context,progress=None: {'entries':[{'key':e['key'],'target':['Bonjour, %{name}'] if e['context']=='greeting' else ['Un cube','%{count} cubes','%{count} cubes'],'note':'French test'} for e in context['requested_entries']]}
+            elif workspace_mode=='next_step':
+                new_entry='\nmsgctxt "new"\nmsgid "New key"\nmsgstr "{}"\n'
+                pending=fixture()+new_entry.format('')
+                complete=fixture('Hola revisada %s').replace('#, fuzzy\n','')+new_entry.format('Nueva clave')
+                client=Mock();client.env_path=root/'.env'
+                client.download.side_effect=[downloads(pending,pending),downloads(complete,pending),ReviewError('Test synchronization failure'),downloads(pending,pending)]
+                client.translations.return_value=[{'code':'es_419','name':'Spanish','total':4,'translated':2},{'code':'fr','name':'French','total':4,'translated':2}]
+                controller=Workspace(root/'data',client)
             elif workspace_mode=='reference':
                 from glossary_store import GlossaryStore
                 meal='\nmsgctxt "meal"\nmsgid "Breakfast at %s"\nmsgstr "{}"\n'
@@ -171,7 +182,7 @@ class BrowserTests(unittest.TestCase):
                     time.sleep(.1)
                 self.assertTrue(port_file.exists(),'Chrome did not open DevTools')
                 debug_port=int(port_file.read_text().splitlines()[0])
-                result=subprocess.run([node,str(Path(__file__).with_name(f'{workspace_mode}_smoke.mjs' if workspace_mode in {'glossary','recovery','reference','i18n','oauth','automatic','demo'} else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
+                result=subprocess.run([node,str(Path(__file__).with_name(f'{workspace_mode}_smoke.mjs' if workspace_mode in {'glossary','recovery','reference','i18n','oauth','automatic','demo','next_step'} else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
                 self.assertEqual(result.returncode,0,result.stdout+result.stderr)
                 print(result.stdout.strip())
                 if workspace_mode=='oauth':

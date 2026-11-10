@@ -55,6 +55,8 @@ Si tu idioma se adapta de otro en lugar del inglés, elegilo en **Más opciones 
 9. Pulsá **Descargar traducción**. Si aparece un control que necesita atención, pulsá **Corregir aquí**, corregí el texto y pulsá **Guardar corrección**. Si aparece un conflicto en la revisión, elegí qué versión conservar antes de volver a intentar. Confirmá las advertencias restantes y que se omitirán las entradas pendientes.
 10. Pulsá **Descargar archivo**. Fijate dónde lo guarda el navegador. El nombre identifica idioma y componente: `<idioma>_<componente>_reviewed.yaml`, `.json` o `.po`.
 
+El recordatorio de finalización aparece al terminar o reabrir explícitamente una revisión. Se oculta al cambiar de componente o idioma, iniciar otra sincronización o cerrarlo. Después de subir el archivo en Weblate, pulsá **Ya lo subí** para cerrar el recordatorio; esto no cambia tus decisiones de revisión. Volvé a sincronizar para consultar el estado remoto actual. Una revisión terminada que se restaura al abrir la aplicación no muestra el recordatorio automáticamente.
+
 ## En Weblate
 
 11. Iniciá sesión en [Weblate de WCA](https://translate.worldcubeassociation.org/). Abrí el **proyecto WCA** y después el **mismo componente e idioma** que elegiste en la aplicación.

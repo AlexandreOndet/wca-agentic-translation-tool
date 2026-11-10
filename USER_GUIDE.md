@@ -55,6 +55,8 @@ If your language is adapted from another one rather than from English, choose it
 9. Click **Download translation**. If a check needs attention, click **Correct here**, fix the text and click **Save correction**. If a conflict appears in the review, choose which version to keep before trying again. Confirm any remaining warnings and that pending entries will be left out.
 10. Click **Download file**. Remember where your browser saves it. Its name identifies the language and component: `<language>_<component>_reviewed.yaml`, `.json` or `.po`.
 
+The completion reminder appears when you finish or explicitly reopen a review. It hides when you change component or language, start another sync, or dismiss it. After uploading in Weblate, click **I uploaded it** to close the reminder; this does not change your review decisions. Sync again to check the current remote state. A finished review restored when you open the application does not show the reminder automatically.
+
 ## In Weblate
 
 11. Sign in to [WCA Weblate](https://translate.worldcubeassociation.org/). Open the **WCA project**, then the **same component and language** you chose in the application.

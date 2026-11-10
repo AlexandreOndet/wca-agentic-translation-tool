@@ -545,8 +545,6 @@
   "All {0} entries reviewed. Next step: download the file, then upload it in Weblate.": "Revisaste las {0} entradas. Próximo paso: descargá el archivo y después subilo a Weblate.",
   "Test file downloaded. Never upload DEMO_ or SIMULATION_ files to Weblate.": "Archivo de prueba descargado. Nunca subas archivos DEMO_ o SIMULATION_ a Weblate.",
   "All {0} entries reviewed. Next step: download the test file. Do not upload it to Weblate.": "Revisaste las {0} entradas. Próximo paso: descargá el archivo de prueba. No lo subas a Weblate.",
-  "File downloaded, but Weblate does not have it yet. Last step: open Weblate, go to Files → Upload translation and pick the file.": "Archivo descargado, pero Weblate todavía no lo tiene. Último paso: abrí Weblate, andá a Files → Upload translation y elegí el archivo.",
-  "Afterwards, Sync & Translate here should no longer show the entries you accepted or edited.": "Después, Sincronizar y traducir acá ya no debería mostrar las entradas que aceptaste o editaste.",
   "AI": "IA",
   "Claude Code · local": "Claude Code · local",
   "Not checked": "Sin verificar",
@@ -571,5 +569,9 @@
   "Some entries have no reference translation. Translate them with AI or from chat instead.": "Algunas entradas no tienen traducción de referencia. Traducilas con IA o desde el chat.",
   "proposals.json already exists in this session. Load it, or create another session.": "proposals.json ya existe en esta sesión. Cargalo o creá otra sesión.",
   "AI translation already started in this session. Continue it, or create another session.": "La traducción con IA ya empezó en esta sesión. Continuala o creá otra sesión.",
-  "Use {0}": "Usar {0}"
+  "Use {0}": "Usar {0}",
+  "File downloaded. If you haven't uploaded it yet, open Weblate, go to Files → Upload translation and pick the file.": "Archivo descargado. Si todavía no lo subiste, abrí Weblate, andá a Files → Upload translation y elegí el archivo.",
+  "After uploading, click “I uploaded it” to close this reminder, or sync to check Weblate again.": "Después de subirlo, pulsá «Ya lo subí» para cerrar este recordatorio, o sincronizá para consultar Weblate de nuevo.",
+  "I uploaded it": "Ya lo subí",
+  "Dismiss reminder": "Cerrar aviso"
 }
