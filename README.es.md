@@ -110,7 +110,7 @@ Validá con el comando de la sesión:
 
 ## Desarrollo y despliegue
 
-Consultá la [checklist de publicación y próximas iteraciones](CHECKLIST.md) para el trabajo pendiente y las validaciones manuales de integración.
+Las verificaciones siguientes cubren el desarrollo local. Consultá la [guía de uso](USER_GUIDE.es.md) para el flujo de traducción y revisión.
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v

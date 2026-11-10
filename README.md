@@ -110,7 +110,7 @@ Validate with the session’s command:
 
 ## Development and deployment
 
-See the [publication and follow-up checklist (Spanish)](CHECKLIST.md) for remaining work and manual integration checks.
+The checks below cover local development. See the [user guide](USER_GUIDE.md) for the translation and review workflow.
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v

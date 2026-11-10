@@ -16,5 +16,5 @@ If a credential is exposed, revoke it at the provider and reconnect through the
 application. Removing it from a file or Git history does not revoke access.
 
 Automated tests use simulated providers. Dependency audits and local secret scans
-do not guarantee the absence of vulnerabilities. Remaining integration checks
-are tracked in [CHECKLIST.md](CHECKLIST.md).
+do not guarantee the absence of vulnerabilities. Run the checks documented in
+[Development and deployment](README.md#development-and-deployment) when validating changes.
