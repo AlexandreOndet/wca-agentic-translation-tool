@@ -44,6 +44,20 @@ try {
  assert(await evaluate("document.getElementById('reference').value==='fr'"),'Reference restored after reload');
  assert(await evaluate("current()?.context==='meal' && state.entries[0].context!=='meal'"),'Reload resumes at the last entry, not the first');
  assert(await evaluate("setLanguage('es_419');document.getElementById('reference').value===''"),'Programmatic target change refreshes the reference');
+ for(const status of ['edited','accepted','rejected']) {
+  await evaluate("document.getElementById('filter').value='all';render();true");
+  const greetingDecision={status,...(status==='edited'?{values:['Salut %s']}:{})};
+  const mealDecision={status,...(status==='edited'?{values:['Déjeuner à %s']}:{})};
+  await evaluate(`mutate('/api/decision',{key:state.entries.find(e=>e.context==='greeting').key,decision:${JSON.stringify(greetingDecision)}})`);
+  await evaluate(`mutate('/api/decision',{key:state.entries.find(e=>e.context==='meal').key,decision:${JSON.stringify(mealDecision)}})`);
+  await evaluate("select(state.entries.find(e=>e.context==='meal').key)");
+  await pick('filter',status);await wait("current()?.context==='meal'");
+  const greetingBefore=await evaluate("JSON.stringify(state.entries.find(e=>e.context==='greeting').decision)");
+  await click('use-reference');await wait('saving===0 && editing');
+  assert(await evaluate("current()?.context==='meal' && document.querySelector('.edit-form')?.value==='Petit-déjeuner à %s'"),`Use reference keeps the same entry under the ${status} filter`);
+  assert(await evaluate("document.getElementById('filter').value==='pending' && current().decision.status==='pending' && current().decision.draft[0]==='Petit-déjeuner à %s' && document.activeElement===document.querySelector('.edit-form')"),'The reference draft stays visible, focused and pending');
+  assert(await evaluate("JSON.stringify(state.entries.find(e=>e.context==='greeting').decision)")===greetingBefore,'Using a reference leaves the other entry unchanged');
+ }
  assert(errors.length===0,'Browser errors: '+errors.join('; '));
  console.log('OK reference: opt-in fr → fr-CA, flagged glossary terms, reference proposals, diff, edit and remembered choice.');
 } finally {await fetch(`${debug}/json/close/${tab.id}`);ws.close();}

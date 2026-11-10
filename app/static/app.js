@@ -414,7 +414,9 @@ $('pending').onclick=()=>act(()=>decide('pending'));
 async function startEditing() {await flush();editing=true;renderEntry();document.querySelector('.edit-form')?.focus();}
 async function useReference() {
   await flush(); const e=current(); if(!e?.reference)return;
-  await mutate('/api/decision',{key:e.key,decision:{status:'pending',draft:[...e.reference]}});
+  await mutate('/api/decision',{key:e.key,decision:{status:'pending',draft:[...e.reference]}},false);
+  if(!visible().some(item=>item.key===e.key))$('filter').value='pending';
+  selected=e.key;render();
   await startEditing();
 }
 $('use-reference').onclick=()=>act(useReference);
