@@ -11,9 +11,10 @@ import subprocess
 import threading
 import time
 import urllib.error
+from urllib.parse import urlsplit
 import urllib.request
 
-from core import ReviewError, PLACEHOLDER, TECHNICAL, tokens
+from core import ReviewError, PLACEHOLDER, FORMAT_PLACEHOLDER, TECHNICAL, tokens
 from network import AI_IDLE_TIMEOUT, MAX_PROVIDER_JSON_BYTES
 from openai_auth import NoRedirect
 
@@ -21,10 +22,8 @@ from openai_auth import NoRedirect
 LINK_OPEN = r'\[(?=[^\]\n]*\]\()'
 RUN = re.compile('(?:' + LINK_OPEN + '|' + TECHNICAL.pattern + '|' + PLACEHOLDER.pattern + ')+')
 SENTINEL = re.compile(r'( ?)XPH(\d+)X( ?)', re.I)
-# Older LibreTranslate model codes for regional Chinese and Portuguese.
-ALIASES = {'pt-br': 'pb', 'zh-hans': 'zh', 'zh-cn': 'zh', 'zh-hant': 'zt', 'zh-tw': 'zt'}
-# LibreTranslate's own spelling of the regional codes it can download.
-ENGINE_CODES = {'pt-br': 'pt-BR', 'zh-hans': 'zh-Hans', 'zh-cn': 'zh-Hans', 'zh-hant': 'zh-Hant', 'zh-tw': 'zh-Hant'}
+# Regional codes LibreTranslate has models for: its current spelling, then the older one.
+REGIONAL = {'pt-br': ('pt-BR', 'pb'), 'zh-hans': ('zh-Hans', 'zh'), 'zh-cn': ('zh-Hans', 'zh'), 'zh-hant': ('zh-Hant', 'zt'), 'zh-tw': ('zh-Hant', 'zt')}
 INSTALL_HINT = 'Set a LibreTranslate server address in Connections, or install LibreTranslate to use Argos: pipx install libretranslate'
 STARTING = 'Starting the local Argos engine. The first use of a language downloads its model.'
 STARTUP_DEADLINE = 900
@@ -35,8 +34,10 @@ def request_json(url, body=None, timeout=AI_IDLE_TIMEOUT):
         raise ReviewError('The LibreTranslate address must start with http:// or https://.')
     data = None if body is None else json.dumps(body).encode()
     request = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'} if data else {}, method='GET' if data is None else 'POST')
+    # A proxy from the environment must never stand between the app and an engine on this machine.
+    direct = [urllib.request.ProxyHandler({})] if urlsplit(url).hostname in ('127.0.0.1', 'localhost', '::1') else []
     try:
-        with urllib.request.build_opener(NoRedirect()).open(request, timeout=timeout) as response:
+        with urllib.request.build_opener(NoRedirect(), *direct).open(request, timeout=timeout) as response:
             raw = response.read(MAX_PROVIDER_JSON_BYTES + 1)
         if len(raw) > MAX_PROVIDER_JSON_BYTES:
             raise ReviewError('The LibreTranslate response was too large.')
@@ -92,7 +93,7 @@ def form_sources(item):
 def resolve(language, targets):
     by_lower = {code.lower(): code for code in targets}
     hyphenated = language.replace('_', '-').lower()
-    for candidate in (hyphenated, ALIASES.get(hyphenated)):
+    for candidate in (hyphenated, *(code.lower() for code in REGIONAL.get(hyphenated, ()))):
         if candidate in by_lower:
             return by_lower[candidate], False
     base = re.split('[_-]', hyphenated)[0]
@@ -107,25 +108,22 @@ def accept(source, raw, runs):
     if out is None or not out.strip() or len(out) > 100000 or any(ord(c) < 32 and c not in '\n\r\t' for c in out):
         return None
     out = source[:len(source) - len(source.lstrip())] + out.strip() + source[len(source.rstrip()):]
-    # shortcut: format-flagged entries are validated with FORMAT_PLACEHOLDER, where prose like "25% of" counts; pass entry flags here if such a batch ever fails
-    if tokens(PLACEHOLDER, source) != tokens(PLACEHOLDER, out):
+    # shortcut: entry flags are not in the context, so prose like "25% of" keeps English even on entries validated without FORMAT_PLACEHOLDER; pass flags if that costs too many strings
+    if any(tokens(pattern, source) != tokens(pattern, out) for pattern in (PLACEHOLDER, FORMAT_PLACEHOLDER)):
         return None
     return out
 
 
 def engine_code(language):
     hyphenated = language.replace('_', '-')
-    return ENGINE_CODES.get(hyphenated.lower()) or hyphenated.split('-')[0]
+    return REGIONAL.get(hyphenated.lower(), (hyphenated.split('-')[0],))[0]
 
 
-def serves(url, code):
-    try:
-        languages = request_json(url + '/languages', timeout=5)
-        english = next(item for item in languages if isinstance(item, dict) and item.get('code') == 'en')
-        _, fallback = resolve(code, [c for c in english['targets'] if isinstance(c, str)])
-    except (ReviewError, StopIteration, KeyError, TypeError):
-        return False
-    return not fallback
+def english_targets(url, timeout=AI_IDLE_TIMEOUT):
+    languages = request_json(url + '/languages', timeout=timeout)
+    english = next((item for item in languages if isinstance(item, dict) and item.get('code') == 'en'), None) if isinstance(languages, list) else None
+    targets = english.get('targets') if english else None
+    return [code for code in targets if isinstance(code, str)] if isinstance(targets, list) else []
 
 
 class ManagedEngine:
@@ -135,6 +133,7 @@ class ManagedEngine:
         self.command = command
         self.process = None
         self.port = None
+        self.reader = None
         self.tail = deque(maxlen=20)
         self.confirmed = set()
         self.lock = threading.Lock()
@@ -151,6 +150,13 @@ class ManagedEngine:
     def alive(self):
         return self.process is not None and self.process.poll() is None
 
+    def serving(self, code, generic=False):
+        # generic: the base model standing in for a regional code is enough.
+        try:
+            return self.alive() and (not resolve(code, english_targets(self.url, 5))[1] or generic)
+        except ReviewError:
+            return False
+
     def ensure(self, language, report=None):
         with self.lock:
             if self.alive() and language in self.confirmed:
@@ -159,15 +165,21 @@ class ManagedEngine:
             # Offline and fast first; only a missing model is worth a start that contacts the model index.
             if not self.alive():
                 self.start(code, False, report)
-            if not (self.alive() and serves(self.url, code)):
+            if not self.serving(code):
                 self.start(code, True, report)
-                if not (self.alive() and serves(self.url, code)):
+                if not self.serving(code, generic=True):
+                    died = not self.alive()
                     self.stop()
-                    self.reader.join(2)
+                    if self.reader:
+                        self.reader.join(2)
                     lines = [' '.join(line.split()) for line in self.tail]
-                    # LibreTranslate reports a failed download on this line and keeps serving.
-                    detail = next((line for line in reversed(lines) if 'Cannot update models' in line), ' '.join(lines) or 'no engine output')[-300:]
-                    raise ReviewError(f'The local Argos engine has no English → {language} model and could not download one. {detail}')
+                    if died:
+                        raise ReviewError('The local Argos engine stopped unexpectedly. ' + (' '.join(lines) or 'no engine output')[-300:])
+                    # LibreTranslate prints this line when a download fails and keeps serving; a pipx install buffers it away.
+                    reason = next((line for line in reversed(lines) if 'Cannot update models' in line), None)
+                    if reason:
+                        raise ReviewError(f'The local Argos engine has no English → {language} model and could not download one. {reason[-300:]}')
+                    raise ReviewError(f'The local Argos engine could not get an English → {language} model. Argos may not offer this language, or the download failed.')
             self.confirmed.add(language)
             return self.url
 
@@ -183,7 +195,7 @@ class ManagedEngine:
         with socket.socket() as probe:
             probe.bind(('127.0.0.1', 0))
             self.port = probe.getsockname()[1]
-        command = [binary, '--host', '127.0.0.1', '--port', str(self.port), '--load-only', 'en,' + code, '--disable-web-ui'] + ['--update-models'] * update
+        command = [binary, '--host', '127.0.0.1', '--port', str(self.port), '--load-only', 'en,' + code, '--disable-web-ui', '--disable-files-translation'] + ['--update-models'] * update
         try:
             process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors='replace', env=dict(os.environ, PYTHONUNBUFFERED='1'))
         except OSError:
@@ -261,10 +273,7 @@ class LibreTranslateTranslator:
 
     def prepare(self, language, report=None):
         url, _ = self.location(language, report)
-        languages = request_json(url + '/languages')
-        english = next((item for item in languages if isinstance(item, dict) and item.get('code') == 'en'), None) if isinstance(languages, list) else None
-        targets = english.get('targets') if english else None
-        self.resolved[language] = resolve(language, [code for code in targets if isinstance(code, str)] if isinstance(targets, list) else [])
+        self.resolved[language] = resolve(language, english_targets(url))
         return self.resolved[language]
 
     def propose(self, model, context, progress=None):

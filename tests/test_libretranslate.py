@@ -9,13 +9,13 @@ import sys
 import tempfile
 import threading
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import polib
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'app'))
 from connections import Connections
-from core import ReviewError
+from core import ReviewError, forms
 from libretranslate import INSTALL_HINT, STARTING, LibreTranslateTranslator, ManagedEngine, libretranslate_endpoint
 from locales import convert_units
 from network import MAX_PROVIDER_JSON_BYTES
@@ -130,9 +130,6 @@ class LibreTranslateTests(unittest.TestCase):
         result = (translator or self.translator).propose('default', batch_context(workspace, entries))
         return entries, result
 
-    def targets(self, result):
-        return {e['key'].split('->')[-1]: e for e in result['entries']}
-
     def test_placeholders_and_markup_never_reach_the_engine_and_are_restored(self):
         w = self.session()
         entries, result = self.propose(w)
@@ -184,7 +181,8 @@ class LibreTranslateTests(unittest.TestCase):
         self.assertIn('Many XPH1X cubes', sent)
 
     def test_language_resolution(self):
-        cases = [('pt_BR', ['en', 'pt-BR'], ('pt-BR', False)), ('pt_BR', ['en', 'pb'], ('pb', False)), ('es_419', ['en', 'es'], ('es', True)), ('zh_Hans', ['en', 'zh'], ('zh', False)), ('zh_Hant', ['en', 'zh', 'zt'], ('zt', False))]
+        cases = [('pt_BR', ['en', 'pt-BR'], ('pt-BR', False)), ('pt_BR', ['en', 'pb'], ('pb', False)), ('es_419', ['en', 'es'], ('es', True)), ('zh_Hans', ['en', 'zh'], ('zh', False)), ('zh_Hant', ['en', 'zh', 'zt'], ('zt', False)),
+                 ('zh_CN', ['en', 'zh-Hans', 'zh-Hant'], ('zh-Hans', False)), ('zh_TW', ['en', 'zh-Hans', 'zh-Hant'], ('zh-Hant', False)), ('zh_CN', ['en', 'zh'], ('zh', False))]
         for language, targets, expected in cases:
             with self.subTest(language, targets=targets):
                 self.fake.languages = [{'code': 'en', 'name': 'English', 'targets': targets}]
@@ -200,6 +198,23 @@ class LibreTranslateTests(unittest.TestCase):
         with self.assertRaises(ReviewError):
             self.translator.prepare('es_419')
         self.assertEqual(self.fake.translations(), [])
+
+    def test_prose_percent_in_a_format_flagged_entry_keeps_english_and_the_session_finishes(self):
+        english, target = polib.POFile(), polib.POFile()
+        english.metadata = {'Language': 'en', 'Content-Type': 'text/plain; charset=UTF-8', 'Plural-Forms': 'nplurals=2; plural=(n != 1);'}
+        target.metadata = dict(english.metadata, Language='es_419')
+        for index, text in enumerate(['Hello %s', 'At least 50% of attempts for %s.']):
+            english.append(polib.POEntry(msgctxt=f'r{index}', msgid=text, msgstr=text, flags=['python-format']))
+            target.append(polib.POEntry(msgctxt=f'r{index}', msgid=text, msgstr='', flags=['python-format']))
+        self.fake.translate = lambda q: q.replace('Hello', 'Hola').replace('of attempts', 'de los intentos')
+        w = self.session('regulations', {'english': str(english), 'target': str(target), 'metadata': {}, 'warnings': []})
+        state = generate_proposals(w, {'libretranslate': self.translator}, 'libretranslate', 'default')
+        self.assertTrue(state['workspace']['ready'])
+        self.assertEqual(sorted(forms(entry)[0] for entry in w.review.proposed.by_key.values()), ['At least 50% of attempts for %s.', 'Hola %s'])
+
+    def test_a_proxy_in_the_environment_is_not_used_for_a_local_server(self):
+        with patch.dict(os.environ, {'http_proxy': 'http://127.0.0.1:9', 'no_proxy': ''}):
+            self.assertEqual(self.translator.prepare('es_419'), ('es-419', False))
 
     def test_base_fallback_is_noted_on_every_entry(self):
         self.fake.languages = [{'code': 'en', 'name': 'English', 'targets': ['en', 'es']}]
@@ -301,7 +316,7 @@ ENGINE = textwrap.dedent('''\
     path = os.path.join(here, 'models.json')
     installed = json.load(open(path))
     if '--update-models' in args or len(installed) < 2:
-        if code == 'hr':
+        if code == 'hr' or os.path.exists(os.path.join(here, 'offline')):
             # Like the real command: a failed download is printed, unflushed, and serving goes on.
             print("Cannot update models (normal if you're offline): Unavailable language codes: hr.")
         elif code not in installed:
@@ -390,6 +405,7 @@ class ManagedEngineTests(unittest.TestCase):
         self.assertEqual(argv[argv.index('--load-only') + 1], 'en,es')
         self.assertNotIn('--update-models', argv)
         self.assertIn('--disable-web-ui', argv)
+        self.assertIn('--disable-files-translation', argv)
         self.assertTrue(w.work['entries'] and state['counts']['pending'])
         self.assertTrue(alive(self.calls()[0]['pid']))
 
@@ -417,6 +433,28 @@ class ManagedEngineTests(unittest.TestCase):
         self.assertIn('--update-models', self.calls()[1]['argv'])
         self.assertFalse(translator.engine.alive())
         self.assertEqual([c['pid'] for c in self.calls() if alive(c['pid'])], [])
+
+    def test_a_launcher_that_buffers_the_engine_message_still_gives_a_clear_error(self):
+        # pipx launchers run `python -E`, which ignores PYTHONUNBUFFERED.
+        self.command.write_text(ENGINE.replace(sys.executable, sys.executable + ' -E', 1))
+        with self.assertRaises(ReviewError) as caught:
+            self.translator().prepare('hr')
+        self.assertEqual(str(caught.exception), 'The local Argos engine could not get an English → hr model. Argos may not offer this language, or the download failed.')
+
+    def test_a_failed_regional_download_falls_back_to_the_installed_base_model(self):
+        self.install('pt', 'es')
+        (self.root / 'offline').touch()
+        translator = self.translator()
+        self.assertEqual(translator.prepare('pt_BR'), ('pt', True))
+        self.assertEqual(len(self.calls()), 2)
+        self.assertTrue(translator.engine.alive())
+
+    def test_a_request_after_close_raises_cleanly(self):
+        translator = self.translator()
+        translator.engine.close()
+        with self.assertRaisesRegex(ReviewError, 'stopped unexpectedly'):
+            translator.prepare('es_419')
+        self.assertEqual(self.calls(), [])
 
     def test_closing_during_a_slow_start_returns_at_once_and_starts_nothing_else(self):
         translator, outcome = self.translator(), []

@@ -587,6 +587,8 @@
   "Starting the local Argos engine. The first use of a language downloads its model.": "Iniciando el motor local de Argos. El primer uso de un idioma descarga su modelo.",
   "Could not start the local LibreTranslate engine. Set a LibreTranslate server address in Connections, or install LibreTranslate to use Argos: pipx install libretranslate": "No se pudo iniciar el motor local de LibreTranslate. Indicá la dirección de un servidor LibreTranslate en Conexiones, o instalá LibreTranslate para usar Argos: pipx install libretranslate",
   "The local Argos engine has no English → {0} model and could not download one. {1}": "El motor local de Argos no tiene un modelo de inglés → {0} y no pudo descargarlo. {1}",
+  "The local Argos engine could not get an English → {0} model. Argos may not offer this language, or the download failed.": "El motor local de Argos no pudo obtener un modelo de inglés → {0}. Puede que Argos no ofrezca este idioma, o que la descarga haya fallado.",
+  "The local Argos engine stopped unexpectedly. {0}": "El motor local de Argos se detuvo inesperadamente. {0}",
   "The LibreTranslate response was too large.": "La respuesta de LibreTranslate era demasiado grande.",
   "LibreTranslate HTTP {0}: {1}. No translations were approved.": "LibreTranslate HTTP {0}: {1}. No se aprobó ninguna traducción.",
   "Could not reach the LibreTranslate server, or it did not answer in time. Check its address in Connections.": "No se pudo conectar con el servidor LibreTranslate, o no respondió a tiempo. Revisá su dirección en Conexiones.",
