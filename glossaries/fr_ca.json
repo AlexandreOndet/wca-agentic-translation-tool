@@ -729,11 +729,10 @@
       "preferred": [
         "moyenne",
         "moyennes",
-        "moyenne arithmétique",
-        "signifie"
+        "moyenne arithmétique"
       ],
       "forbidden": [],
-      "note": "Locales: « mean » et « average » donnent tous deux « moyenne ». Signifie est juste là pour éviter des warning inutiles"
+      "note": "Locales: « mean » et « average » donnent tous deux « moyenne »."
     },
     {
       "source": [
@@ -1640,7 +1639,8 @@
       ],
       "preferred": [
         "Président de la WCA",
-        "Présidente de la WCA"
+        "Présidente de la WCA",
+        "Président·e de la WCA"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1700,7 +1700,8 @@
         "Directeur Exécutif de la WCA",
         "Directrice Exécutive de la WCA",
         "Directeur Exécutif",
-        "Directrice Exécutive"
+        "Directrice Exécutive",
+        "Directeur·rice Exécutif·ve de la WCA"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1870,7 +1871,8 @@
       ],
       "preferred": [
         "Trésorier de la WCA",
-        "Trésorière de la WCA"
+        "Trésorière de la WCA",
+        "Trésorier·ère de la WCA"
       ],
       "forbidden": [],
       "note": "Locales écrit « Tresorier·ère » (accent manquant)."
@@ -1881,7 +1883,8 @@
       ],
       "preferred": [
         "Vice-président de la WCA",
-        "Vice-présidente de la WCA"
+        "Vice-présidente de la WCA",
+        "Vice-président·e de la WCA"
       ],
       "forbidden": [],
       "note": "Locales"
