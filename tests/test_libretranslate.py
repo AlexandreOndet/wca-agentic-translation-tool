@@ -156,6 +156,18 @@ class LibreTranslateTests(unittest.TestCase):
         self.assertEqual(fallback['target'], [source])
         self.assertIn('English kept', fallback['note'])
 
+    def test_reordered_markup_keeps_english_but_reordered_placeholders_are_translated(self):
+        def swapped(q):
+            return q.replace('XPH1X', '@').replace('XPH2X', 'XPH1X').replace('@', 'XPH2X')
+        self.fake.translate = swapped
+        for source in ('Read the [rules](https://x.org/r) first', 'Click <a href="x">here</a> now'):
+            context = {'language': 'es_419', 'requested_entries': [{'key': 'k', 'source': [source], 'target_count': 1}]}
+            entry = self.translator.propose('default', context)['entries'][0]
+            self.assertEqual(entry['target'], [source])
+            self.assertIn('English kept', entry['note'])
+        context = {'language': 'es_419', 'requested_entries': [{'key': 'k', 'source': ['%{count} of %{total}'], 'target_count': 1}]}
+        self.assertEqual(self.translator.propose('default', context)['entries'], [{'key': 'k', 'target': ['%{total} of %{count}'], 'note': ''}])
+
     def test_a_dropped_sentinel_keeps_english_for_that_entry_only(self):
         self.fake.translate = lambda q: spanish(q.replace('XPH2X', '')) if 'rules' in q else spanish(q)
         w = self.session()
@@ -300,6 +312,18 @@ class LibreTranslateTests(unittest.TestCase):
         connections.configure({'LIBRETRANSLATE_URL': ''})
         self.assertFalse(connections.status()['libretranslate'])
         self.assertIn('libretranslate', ai_translators(connections, Mock()))
+
+    def test_a_saved_api_key_is_not_sent_to_a_different_server(self):
+        (self.root / '.env').write_text('LIBRETRANSLATE_URL=http://a.example/\nLIBRETRANSLATE_API_KEY=' + KEY + '\n')
+        connections = Connections(self.root / '.env')
+        connections.configure({'LIBRETRANSLATE_URL': 'http://a.example'})
+        self.assertEqual(libretranslate_endpoint(connections)(), ('http://a.example', KEY))
+        connections.configure({'LIBRETRANSLATE_URL': 'http://b.example'})
+        self.assertEqual(libretranslate_endpoint(connections)(), ('http://b.example', ''))
+        connections.configure({'LIBRETRANSLATE_URL': 'http://c.example', 'LIBRETRANSLATE_API_KEY': 'other-key-456'})
+        self.assertEqual(libretranslate_endpoint(connections)(), ('http://c.example', 'other-key-456'))
+        connections.configure({'LIBRETRANSLATE_URL': 'http://a.example'})
+        self.assertEqual(libretranslate_endpoint(connections)(), ('http://a.example', ''))
 
 
 # A fake `libretranslate` command with the behaviour ManagedEngine depends on. Like the real command, it downloads the --load-only model only when started with --update-models or when fewer than two models are installed, and it serves every installed model whatever --load-only says. The tests that expect a restart, or expect none, rely on this.

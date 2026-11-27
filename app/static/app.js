@@ -677,7 +677,7 @@ $('connections-save').onclick=()=>act(async()=>{
   await refreshConnections();$('connection-message').textContent=t("Token saved for this server session.");
   await ensureLanguages();
 });
-// The address is sent whenever the user edited the address field, even if that field is now empty, so that emptying the address field removes the saved server. The API key is sent only when one was typed, because the saved key is never shown and an empty key field means "keep the saved key".
+// The address is sent whenever the user edited the address field, even if that field is now empty, so that emptying the address field removes the saved server. The API key is sent only when one was typed, because the saved key is never shown and an empty key field means "keep the saved key" as long as the address is unchanged. When the address changes without a new key, the server drops the saved key (Connections.configure in connections.py).
 $('libretranslate-url').oninput=()=>{$('libretranslate-url').dataset.touched='1';};
 $('libretranslate-save').onclick=()=>act(async()=>{
   const values={};

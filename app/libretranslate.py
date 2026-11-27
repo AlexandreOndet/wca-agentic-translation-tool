@@ -1,6 +1,6 @@
 """Proposals from a LibreTranslate server (Argos Translate): a configured address, or the user's own installed `libretranslate` command."""
 import atexit
-from collections import Counter, deque
+from collections import deque
 import http.client
 import json
 import os
@@ -76,7 +76,13 @@ def mask(text):
 
 def unmask(text, runs):
     # unmask() returns None unless every sentinel comes back exactly once, because a lost or repeated sentinel means a lost or repeated placeholder. SENTINEL ignores case because LibreTranslate sometimes lowercases a sentinel.
-    if Counter(number for _, number, _ in SENTINEL.findall(text)) != Counter(str(n) for n in range(1, len(runs) + 1)):
+    numbers = [int(number) for _, number, _ in SENTINEL.findall(text)]
+    if sorted(numbers) != list(range(1, len(runs) + 1)):
+        return None
+    # A translation may move placeholders, but the sentinels that stand for tags and link halves must keep their order: a closing tag that comes back before its opening tag passes the check above, which only counts sentinels, and still breaks the markup. A run counts as markup when it holds anything besides placeholders.
+    # shortcut: two whole links that swap places are also refused and keep the English text. Compare tag pairs instead if that proves common.
+    markup = [number for number in numbers if PLACEHOLDER.sub('', runs[number - 1][0])]
+    if markup != sorted(markup):
         return None
 
     def restore(match):

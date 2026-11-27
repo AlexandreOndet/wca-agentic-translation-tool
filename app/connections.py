@@ -37,6 +37,9 @@ class Connections:
             cleaned[name] = value
         if self.demo:
             raise ReviewError('The demo does not use credentials.')
+        # An API key belongs to the server it was saved for. When the address changes and the same request brings no key, the saved key is dropped, so that the key is never sent to a different server.
+        if 'LIBRETRANSLATE_URL' in cleaned and cleaned['LIBRETRANSLATE_URL'] != self.get('LIBRETRANSLATE_URL').rstrip('/'):
+            cleaned.setdefault('LIBRETRANSLATE_API_KEY', '')
         self.overrides.update(cleaned)
 
     def status(self):
