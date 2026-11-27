@@ -180,6 +180,17 @@ function diff(a, b) {
   return [old, proposed];
 }
 function diffText(parts, className) { const box = textNode('div','','text'); for (const part of parts) box.append(textNode('span',part.text,part.changed ? className : '')); return box; }
+// diff() returns the old and the new token lists separately. Unchanged tokens appear in both lists in the same order, so one pass merges the lists into a single text that shows each removed and added token where it occurs.
+function inlineDiff(a, b) {
+  const [old, proposed] = diff(a, b), box = textNode('div','','text'); let j = 0;
+  for (const part of old) {
+    if (part.changed) { box.append(textNode('span',part.text,'removed')); continue; }
+    while (proposed[j].changed) box.append(textNode('span',proposed[j++].text,'added'));
+    box.append(part.text); j++;
+  }
+  for (; j<proposed.length; j++) box.append(textNode('span',proposed[j].text,'added'));
+  return box;
+}
 function flagLabel(flag) { return `${flag.term} → ${flag.replacement.join(' / ')}`; }
 function flagText(value, flags, label) {
   const box = textNode('div','','text');
@@ -204,7 +215,9 @@ function renderEntry() {
   $('position').textContent = t("CHANGE {0} OF {1}", state.entries.indexOf(e)+1, state.entries.length);
   $('context').textContent = e.context || t("No context"); $('status').textContent = t(labels[e.decision.status]) + (e.conflict ? t(" · Conflict") : '');
   $('source').replaceChildren();
-  e.source.forEach((value,i) => { if (e.source.length>1) $('source').append(textNode('div',i===0?t("Singular"):t("Plural"),'plural-label')); $('source').append(textNode('div',value,'text')); });
+  const previous = e.previous_source && JSON.stringify(e.previous_source) !== JSON.stringify(e.source) ? e.previous_source : null;
+  if (previous) $('source').append(textNode('p',t("Changes since the previous English."),'legend'));
+  e.source.forEach((value,i) => { if (e.source.length>1) $('source').append(textNode('div',i===0?t("Singular"):t("Plural"),'plural-label')); $('source').append(previous ? inlineDiff(previous[i] ?? '',value) : textNode('div',value,'text')); });
   $('reference-panel').hidden = !e.reference;
   $('use-reference').hidden = !e.reference;
   $('use-reference').replaceChildren(t("Use {0}", state.workspace?.reference?.language_name || '') + ' ', textNode('kbd','U'));
@@ -664,7 +677,7 @@ $('connections-save').onclick=()=>act(async()=>{
   await refreshConnections();$('connection-message').textContent=t("Token saved for this server session.");
   await ensureLanguages();
 });
-// A touched address field is sent even when emptied, so it can clear the server; the key is sent only when typed.
+// The address is sent whenever the user edited the address field, even if that field is now empty, so that emptying the address field removes the saved server. The API key is sent only when one was typed, because the saved key is never shown and an empty key field means "keep the saved key".
 $('libretranslate-url').oninput=()=>{$('libretranslate-url').dataset.touched='1';};
 $('libretranslate-save').onclick=()=>act(async()=>{
   const values={};

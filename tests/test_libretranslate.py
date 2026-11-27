@@ -302,7 +302,7 @@ class LibreTranslateTests(unittest.TestCase):
         self.assertIn('libretranslate', ai_translators(connections, Mock()))
 
 
-# Fake `libretranslate`: downloads a model only on --update-models or with fewer than two installed, and serves every installed one.
+# A fake `libretranslate` command with the behaviour ManagedEngine depends on. Like the real command, it downloads the --load-only model only when started with --update-models or when fewer than two models are installed, and it serves every installed model whatever --load-only says. The tests that expect a restart, or expect none, rely on this.
 ENGINE = textwrap.dedent('''\
     #!PYTHON
     import json, os, sys, time
@@ -317,7 +317,7 @@ ENGINE = textwrap.dedent('''\
     installed = json.load(open(path))
     if '--update-models' in args or len(installed) < 2:
         if code == 'hr' or os.path.exists(os.path.join(here, 'offline')):
-            # Like the real command: a failed download is printed, unflushed, and serving goes on.
+            # Like the real command, a failed download prints the "Cannot update models" line without flushing and the server still starts. The code `hr` always fails to download, and an `offline` file next to the fake command makes every download fail.
             print("Cannot update models (normal if you're offline): Unavailable language codes: hr.")
         elif code not in installed:
             installed.append(code)
@@ -435,7 +435,7 @@ class ManagedEngineTests(unittest.TestCase):
         self.assertEqual([c['pid'] for c in self.calls() if alive(c['pid'])], [])
 
     def test_a_launcher_that_buffers_the_engine_message_still_gives_a_clear_error(self):
-        # pipx launchers run `python -E`, which ignores PYTHONUNBUFFERED.
+        # `python -E` ignores the PYTHONUNBUFFERED that ManagedEngine sets, so this launcher loses the "Cannot update models" line the way a pipx install does. The error raised by prepare() must still say what failed.
         self.command.write_text(ENGINE.replace(sys.executable, sys.executable + ' -E', 1))
         with self.assertRaises(ReviewError) as caught:
             self.translator().prepare('hr')

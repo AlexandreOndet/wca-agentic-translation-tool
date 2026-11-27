@@ -18,14 +18,16 @@ from core import ReviewError, PLACEHOLDER, FORMAT_PLACEHOLDER, TECHNICAL, tokens
 from network import AI_IDLE_TIMEOUT, MAX_PROVIDER_JSON_BYTES
 from openai_auth import NoRedirect
 
-# TECHNICAL covers only the `](target)` half of a Markdown link; engines also rewrite the opening bracket.
+# mask() swaps each run of placeholders, tags and links for a sentinel such as XPH1X, a made-up word that LibreTranslate usually copies unchanged, and unmask() puts the originals back.
+# Of a Markdown link, TECHNICAL (from core) matches only the `](target)` half. LINK_OPEN adds the opening `[`, because LibreTranslate otherwise drops or moves that bracket and the link breaks.
 LINK_OPEN = r'\[(?=[^\]\n]*\]\()'
 RUN = re.compile('(?:' + LINK_OPEN + '|' + TECHNICAL.pattern + '|' + PLACEHOLDER.pattern + ')+')
 SENTINEL = re.compile(r'( ?)XPH(\d+)X( ?)', re.I)
-# Regional codes LibreTranslate has models for: its current spelling, then the older one.
+# Regional languages that have their own LibreTranslate model. Current servers list such a model under the first code and older servers under the second, so resolve() tries both.
 REGIONAL = {'pt-br': ('pt-BR', 'pb'), 'zh-hans': ('zh-Hans', 'zh'), 'zh-cn': ('zh-Hans', 'zh'), 'zh-hant': ('zh-Hant', 'zt'), 'zh-tw': ('zh-Hant', 'zt')}
 INSTALL_HINT = 'Set a LibreTranslate server address in Connections, or install LibreTranslate to use Argos: pipx install libretranslate'
 STARTING = 'Starting the local Argos engine. The first use of a language downloads its model.'
+# Seconds to wait for the local LibreTranslate engine to start. The wait is this long because a start can include a model download of several hundred megabytes.
 STARTUP_DEADLINE = 900
 
 
@@ -34,7 +36,7 @@ def request_json(url, body=None, timeout=AI_IDLE_TIMEOUT):
         raise ReviewError('The LibreTranslate address must start with http:// or https://.')
     data = None if body is None else json.dumps(body).encode()
     request = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'} if data else {}, method='GET' if data is None else 'POST')
-    # A proxy from the environment must never stand between the app and an engine on this machine.
+    # Requests to this machine skip any proxy set in the environment (http_proxy). Without the bypass, the proxy would receive them and the local LibreTranslate engine would look unreachable.
     direct = [urllib.request.ProxyHandler({})] if urlsplit(url).hostname in ('127.0.0.1', 'localhost', '::1') else []
     try:
         with urllib.request.build_opener(NoRedirect(), *direct).open(request, timeout=timeout) as response:
@@ -64,7 +66,7 @@ def mask(text):
     runs = []
 
     def sentinel(match):
-        # A sentinel glued to a word is copied with it untranslated, so pad that side; unmask drops the pad.
+        # When a sentinel touches a letter or digit, LibreTranslate takes both for one unknown word and leaves that word untranslated. A space is added on that side, and unmask() removes it again.
         left = match.start() > 0 and text[match.start() - 1].isalnum()
         right = match.end() < len(text) and text[match.end()].isalnum()
         runs.append((match.group(0), left, right))
@@ -73,7 +75,7 @@ def mask(text):
 
 
 def unmask(text, runs):
-    # The engine sometimes lowercases the first letter, so match case-insensitively.
+    # unmask() returns None unless every sentinel comes back exactly once, because a lost or repeated sentinel means a lost or repeated placeholder. SENTINEL ignores case because LibreTranslate sometimes lowercases a sentinel.
     if Counter(number for _, number, _ in SENTINEL.findall(text)) != Counter(str(n) for n in range(1, len(runs) + 1)):
         return None
 
@@ -97,7 +99,7 @@ def resolve(language, targets):
         if candidate in by_lower:
             return by_lower[candidate], False
     base = re.split('[_-]', hyphenated)[0]
-    # The bare zh model is Simplified, never a stand-in for Traditional.
+    # A regional language falls back to the model of its base language, except Chinese: the `zh` model is Simplified Chinese and must not be offered for Traditional Chinese.
     if base != 'zh' and base in by_lower:
         return by_lower[base], True
     raise ReviewError(f'This LibreTranslate server has no English → {language} model.')
@@ -108,7 +110,8 @@ def accept(source, raw, runs):
     if out is None or not out.strip() or len(out) > 100000 or any(ord(c) < 32 and c not in '\n\r\t' for c in out):
         return None
     out = source[:len(source) - len(source.lstrip())] + out.strip() + source[len(source.rstrip()):]
-    # shortcut: entry flags are not in the context, so prose like "25% of" keeps English even on entries validated without FORMAT_PLACEHOLDER; pass flags if that costs too many strings
+    # validate_batch (translation.py) checks format-flagged entries with FORMAT_PLACEHOLDER, which also counts prose such as "25% of", and rejects the whole batch on one mismatch. The batch context that propose() receives does not carry an entry's flags, so PLACEHOLDER and FORMAT_PLACEHOLDER are both applied to every entry.
+    # shortcut: an unflagged entry with prose such as "25% of" keeps the English text although its translation would be valid. Pass the flags in the batch context if too many strings are affected.
     if any(tokens(pattern, source) != tokens(pattern, out) for pattern in (PLACEHOLDER, FORMAT_PLACEHOLDER)):
         return None
     return out
@@ -151,7 +154,7 @@ class ManagedEngine:
         return self.process is not None and self.process.poll() is None
 
     def serving(self, code, generic=False):
-        # generic: the base model standing in for a regional code is enough.
+        # With generic=True, the model of a base language (pt) counts as serving a regional code (pt-BR). ensure() passes generic=True after the restart with --update-models, so that pt-BR still works with the pt model when the regional model could not be downloaded.
         try:
             return self.alive() and (not resolve(code, english_targets(self.url, 5))[1] or generic)
         except ReviewError:
@@ -162,7 +165,7 @@ class ManagedEngine:
             if self.alive() and language in self.confirmed:
                 return self.url
             code = engine_code(language)
-            # Offline and fast first; only a missing model is worth a start that contacts the model index.
+            # The first start does not pass --update-models, so that start works offline and takes about a second. LibreTranslate is restarted with --update-models, which downloads from the model index, only when the requested model is not installed.
             if not self.alive():
                 self.start(code, False, report)
             if not self.serving(code):
@@ -175,7 +178,7 @@ class ManagedEngine:
                     lines = [' '.join(line.split()) for line in self.tail]
                     if died:
                         raise ReviewError('The local Argos engine stopped unexpectedly. ' + (' '.join(lines) or 'no engine output')[-300:])
-                    # LibreTranslate prints this line when a download fails and keeps serving; a pipx install buffers it away.
+                    # When a download fails, LibreTranslate prints a "Cannot update models" line and keeps running. That line is quoted when it was captured. A pipx install starts LibreTranslate in a way that loses that line, so the general message below covers that case.
                     reason = next((line for line in reversed(lines) if 'Cannot update models' in line), None)
                     if reason:
                         raise ReviewError(f'The local Argos engine has no English → {language} model and could not download one. {reason[-300:]}')
@@ -195,6 +198,7 @@ class ManagedEngine:
         with socket.socket() as probe:
             probe.bind(('127.0.0.1', 0))
             self.port = probe.getsockname()[1]
+        # Only the JSON API on 127.0.0.1 is needed, so the web interface and file translation are switched off. --load-only names the one language pair to download. PYTHONUNBUFFERED makes LibreTranslate print its messages at once, so that ensure() can quote the reason for a failed download.
         command = [binary, '--host', '127.0.0.1', '--port', str(self.port), '--load-only', 'en,' + code, '--disable-web-ui', '--disable-files-translation'] + ['--update-models'] * update
         try:
             process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors='replace', env=dict(os.environ, PYTHONUNBUFFERED='1'))
@@ -219,7 +223,7 @@ class ManagedEngine:
             except ReviewError:
                 time.sleep(0.5)
 
-    # Lock-free: at exit a start may still be polling under the lock in a request thread.
+    # stop() must not take self.lock. At exit, ensure() may still hold the lock in a request thread while it waits for LibreTranslate to start, and stop() would then block the exit for up to STARTUP_DEADLINE.
     def stop(self):
         process, self.process = self.process, None
         self.confirmed.clear()
@@ -286,7 +290,7 @@ class LibreTranslateTranslator:
             plans.append((item['key'], sources, [mask(source) for source in sources]))
         queries = list(dict.fromkeys(masked for _, _, forms in plans for masked, _ in forms))
         body = dict({'q': queries, 'source': 'en', 'target': code, 'format': 'text'}, **({'api_key': api_key} if api_key else {}))
-        # shortcut: one POST per batch, no handling of hosted character or batch limits; split per string if hosted servers matter
+        # shortcut: the whole batch goes in one request, which is the simplest code and is enough for a local engine. A hosted LibreTranslate server that limits characters or strings per request will reject such a request. Split the batch if such servers must be supported.
         response = request_json(url + '/translate', body) if queries else {'translatedText': []}
         translated = response.get('translatedText') if isinstance(response, dict) else None
         if not isinstance(translated, list) or len(translated) != len(queries) or not all(isinstance(text, str) for text in translated):

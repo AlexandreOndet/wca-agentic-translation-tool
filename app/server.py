@@ -354,7 +354,7 @@ def main():
     if not 1 <= args.port <= 65535:
         parser.error('The port must be between 1 and 65535.')
     args.data_dir.mkdir(parents=True, exist_ok=True)
-    # Exit normally on SIGTERM so atexit stops the managed engine.
+    # Without this handler, SIGTERM ends the app without running atexit hooks, and the local LibreTranslate engine that ManagedEngine started would keep running.
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     # Prevent two servers from overwriting the same progress.
     with (args.data_dir / '.lock').open('a') as lock:
