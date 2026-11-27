@@ -1231,7 +1231,9 @@
     {
       "source": [
         "score taker",
-        "score takers"
+        "score takers",
+        "scoretaker",
+        "scoretakers"
       ],
       "preferred": [
         "saisisseur de résultats",
@@ -1794,16 +1796,19 @@
     {
       "source": [
         "WCA Regulations",
-        "Regulations"
+        "Regulations",
+        "Regulation"
       ],
       "preferred": [
         "Règlement de la WCA",
         "Règlement WCA",
         "Règlement",
-        "ensemble de règles"
+        "ensemble de règles",
+        "règle",
+        "règles"
       ],
       "forbidden": [],
-      "note": "Locales"
+      "note": "Locales. « règle » pour une règle précise : « Regulation 9m3 » → « la règle 9m3 »."
     },
     {
       "source": [
@@ -1979,7 +1984,7 @@
         "coureuses"
       ],
       "forbidden": [],
-      "note": "Bénévole qui transporte les puzzles et feuilles de score entre les compétiteurs et les juges."
+      "note": "Bénévole qui transporte les casse-têtes et feuilles de score entre les compétiteurs et les juges."
     }
   ]
 }
