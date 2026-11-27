@@ -189,7 +189,8 @@ class BrowserTests(unittest.TestCase):
             try:
                 port_file=profile/'DevToolsActivePort'
                 for _ in range(150):
-                    if port_file.exists():break
+                    # Wait until the port file has content: read right after it appears, the file can still be empty.
+                    if port_file.exists() and port_file.read_text().strip():break
                     if proc.poll() is not None: self.fail('Chrome closed during startup')
                     time.sleep(.1)
                 self.assertTrue(port_file.exists(),'Chrome did not open DevTools')
